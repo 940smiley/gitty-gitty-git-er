@@ -21,7 +21,7 @@ A comprehensive GitHub bot for managing repositories, code, commits, pull reques
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/gitty-gitty-git-er.git
+   git clone https://github.com/940smiley/gitty-gitty-git-er.git
    cd gitty-gitty-git-er
    ```
 
