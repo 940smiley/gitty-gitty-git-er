@@ -1,6 +1,6 @@
 # Gitty-Gitty-Git-Er
 
-A comprehensive GitHub bot for managing repositories, code, commits, pull requests, and repository settings.
+A comprehensive GitHub bot for managing repositories, code, commits, pull requests, and repository settings. Now available as a standalone application and Progressive Web App (PWA)!
 
 ## Features
 
@@ -8,6 +8,9 @@ A comprehensive GitHub bot for managing repositories, code, commits, pull reques
 - **Code Operations**: View, edit, and review code
 - **Commits and PRs**: Create branches, make commits, and manage pull requests
 - **Repository Settings**: Configure repository settings, branch protection, and collaborators
+- **Standalone Application**: Use as a desktop application or PWA
+- **Offline Support**: Work with cached repositories even when offline
+- **Responsive UI**: Works on desktop, tablet, and mobile devices
 
 ## Installation
 
@@ -15,9 +18,10 @@ A comprehensive GitHub bot for managing repositories, code, commits, pull reques
 
 - Node.js 14+ and npm
 - A GitHub account
-- A GitHub personal access token with appropriate permissions
+- For API usage: A GitHub personal access token with appropriate permissions
+- For Standalone/PWA: A GitHub OAuth App
 
-### Setup
+### Setup as a Library or Server
 
 1. Clone this repository:
    ```bash
@@ -42,6 +46,31 @@ A comprehensive GitHub bot for managing repositories, code, commits, pull reques
    PORT=3000
    LOG_LEVEL=info
    ```
+
+### Setup as a Standalone App or PWA
+
+1. Follow the library setup steps above
+
+2. Create a GitHub OAuth App:
+   - Go to GitHub Settings > Developer Settings > OAuth Apps > New OAuth App
+   - Set Application name to "Gitty-Gitty-Git-Er"
+   - Set Homepage URL to `http://localhost:3000` (or your domain in production)
+   - Set Authorization callback URL to `http://localhost:3000/auth/callback`
+   - Register the application and note your Client ID and Client Secret
+
+3. Add OAuth credentials to your `.env` file:
+   ```
+   GITHUB_CLIENT_ID=your_oauth_client_id
+   GITHUB_CLIENT_SECRET=your_oauth_client_secret
+   GITHUB_REDIRECT_URI=http://localhost:3000/auth/callback
+   ```
+
+4. Start the application:
+   ```bash
+   npm start
+   ```
+
+5. Open your browser to `http://localhost:3000`
 
 ## Usage
 
@@ -117,10 +146,83 @@ main().catch(console.error);
 You can run Gitty-Gitty-Git-Er as a webhook server to respond to GitHub events:
 
 ```bash
-node index.js
+npm start
 ```
 
 This will start a server listening for GitHub webhooks on the port specified in your `.env` file.
+
+### As a Standalone Application
+
+1. Start the application server:
+   ```bash
+   npm start
+   ```
+
+2. Open your browser to `http://localhost:3000`
+
+3. Click "Login with GitHub" and authorize the application
+
+4. You can now use the UI to manage your repositories, code, and pull requests
+
+### As a Progressive Web App (PWA)
+
+1. Start the application server:
+   ```bash
+   npm start
+   ```
+
+2. Open your browser to `http://localhost:3000`
+
+3. Install the PWA:
+   - Chrome/Edge: Click the "Install" icon in the address bar
+   - Mobile: Use "Add to Home Screen" in your browser menu
+
+4. The app will now be available from your desktop/home screen even when offline
+
+## Standalone App Features
+
+### Dashboard
+The dashboard provides an overview of your recent activity and quick actions:
+- Recent repositories
+- Open pull requests
+- GitHub API status
+- Quick actions for common tasks
+
+### Repositories
+Manage your repositories:
+- View repository list
+- Create new repositories
+- Filter and search repositories
+- Access repository code and pull requests
+
+### Code Explorer
+Browse and edit code in your repositories:
+- Navigate repository file structure
+- View file contents with syntax highlighting
+- Edit files and commit changes
+- Download files
+
+### Pull Requests
+Manage pull requests across your repositories:
+- View open, closed, and merged pull requests
+- Create new pull requests
+- Filter PRs by repository and state
+- View PR details and comments
+
+### Settings
+Configure the application:
+- Change theme (light/dark)
+- Configure offline mode
+- Manage GitHub connection
+- View OAuth scopes
+
+## Offline Mode
+
+The application supports offline capabilities:
+- Repositories and files are cached for offline access
+- Changes made offline are synced when you're back online
+- Background sync uses the Background Sync API when available
+- Offline status is indicated in the UI
 
 ## API Reference
 
@@ -162,6 +264,49 @@ This will start a server listening for GitHub webhooks on the port specified in 
 - `settings.setRepositoryTopics(owner, repo, names)` - Sets repository topics
 - `settings.setVulnerabilityAlerts(owner, repo, enabled)` - Manages vulnerability alerts
 
+## Production Deployment
+
+To deploy the application to production:
+
+1. Set up your environment variables for production:
+   ```
+   NODE_ENV=production
+   HOST=your-domain.com
+   PORT=80
+   ```
+
+2. Build for production:
+   ```bash
+   npm run build-client
+   ```
+
+3. Start the production server:
+   ```bash
+   npm run start-prod
+   ```
+
+### Deployment Options
+
+- **Heroku**: Use the included Procfile for easy deployment
+- **Docker**: A Dockerfile is provided for containerized deployment
+- **Vercel/Netlify**: Deploy the client as a static site with serverless functions
+- **Self-hosted**: Run on your own server with a reverse proxy like Nginx
+
+## Authentication Modes
+
+The application supports two authentication modes:
+
+1. **API Token** (for server/library usage):
+   - Set `GITHUB_TOKEN` and `GITHUB_USERNAME` in your .env file
+   - Provides access to all API functions
+   - Used for server-side operations and webhook handling
+
+2. **OAuth** (for standalone/PWA usage):
+   - Set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` in your .env file
+   - Users authenticate through GitHub OAuth flow
+   - Tokens are stored securely in the browser
+   - Scope-limited access based on user authorization
+
 ## GitHub Token Permissions
 
 Your GitHub personal access token should have the following permissions:
@@ -169,6 +314,15 @@ Your GitHub personal access token should have the following permissions:
 - `repo` (Full control of private repositories)
 - `admin:org` (Organization administration)
 - `user` (Update all user data)
+
+## Browser Compatibility
+
+The standalone application and PWA support:
+- Chrome/Edge (latest 2 versions)
+- Firefox (latest 2 versions)
+- Safari (latest 2 versions)
+- iOS Safari and Chrome
+- Android Chrome and Firefox
 
 ## License
 
