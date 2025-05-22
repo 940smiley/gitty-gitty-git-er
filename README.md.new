@@ -1,0 +1,90 @@
+# Gitty-Gitty-Git-Er
+
+A comprehensive GitHub manager with standalone application capabilities.
+
+## Features
+
+- **Repository Management**: Create, update, delete, and list repositories
+- **Code Operations**: View, edit, and review code
+- **Commits and PRs**: Create branches, make commits, and manage pull requests
+- **Repository Settings**: Configure repository settings, branch protection, and collaborators
+- **Standalone Application**: Use as a desktop application with Electron
+- **PWA Support**: Install as a Progressive Web App
+- **Offline Mode**: Work with cached repositories even when offline
+
+## Project Structure
+
+This project follows a monorepo structure with three main packages:
+
+- **client**: React-based web application
+- **server**: Express API server
+- **electron**: Electron desktop application wrapper
+
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/940smiley/gitty-gitty-git-er.git
+   cd gitty-gitty-git-er
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables:
+   ```bash
+   cp server/.env.example server/.env
+   cp client/.env.example client/.env
+   ```
+
+4. Configure your GitHub OAuth application:
+   - Create an OAuth App at https://github.com/settings/developers
+   - Set the Homepage URL to http://localhost:5173
+   - Set the Authorization callback URL to http://localhost:3001/api/auth/callback
+   - Add your Client ID and Client Secret to the .env files
+
+## Usage
+
+### Development
+
+Start both client and server in development mode:
+
+```bash
+npm run dev
+```
+
+### Production
+
+Build the client and start the server:
+
+```bash
+npm run build
+npm start
+```
+
+### Desktop Application
+
+Run the Electron application:
+
+```bash
+npm run electron
+```
+
+Package the Electron application:
+
+```bash
+npm run package
+```
+
+## Technologies Used
+
+- **Frontend**: React, Vite, TailwindCSS, React Query, Zustand
+- **Backend**: Express.js, Octokit
+- **Desktop**: Electron
+- **Authentication**: GitHub OAuth, JWT
+
+## License
+
+MIT
