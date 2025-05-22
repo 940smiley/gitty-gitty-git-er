@@ -62,21 +62,21 @@
       "short_name": "Dashboard",
       "description": "View your GitHub dashboard",
       "url": "/?page=dashboard",
-      "icons": [{ "src": "images/icons/dashboard.png", "sizes": "192x192" }]
+      "icons": [{ "src": "images/icons/dashboard.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Repositories",
       "short_name": "Repos",
       "description": "Manage your repositories",
       "url": "/?page=repositories",
-      "icons": [{ "src": "images/icons/repo.png", "sizes": "192x192" }]
+      "icons": [{ "src": "images/icons/repo.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Pull Requests",
       "short_name": "PRs",
       "description": "View and manage pull requests",
       "url": "/?page=prs",
-      "icons": [{ "src": "images/icons/pr.png", "sizes": "192x192" }]
+      "icons": [{ "src": "images/icons/pr.png", "sizes": "192x192", "type": "image/png" }]
     }
   ],
   "categories": ["developer tools", "productivity", "utilities"],

@@ -805,8 +805,58 @@ async function getRateLimit() {
   return rateLimit;
 }
 
-// Export API functions
+// Export API functions for use in other modules (ESM and global)
 export {
   initAPI,
-  setToken
+  setToken,
+  createRepository,
+  listRepositories,
+  getRepository,
+  updateRepository,
+  deleteRepository,
+  getRepositoryContents,
+  getFileContent,
+  updateFile,
+  deleteFile,
+  listBranches,
+  createBranch,
+  deleteBranch,
+  createPullRequest,
+  listPullRequests,
+  getPullRequest,
+  mergePullRequest,
+  createIssueComment,
+  createPullRequestReview,
+  createReviewComment,
+  getAuthenticatedUser,
+  getAuthorizedScopes,
+  getRateLimit
+};
+
+// Also attach to window for global access if needed (for legacy code)
+window.GittyGitAPI = {
+  initAPI,
+  setToken,
+  createRepository,
+  listRepositories,
+  getRepository,
+  updateRepository,
+  deleteRepository,
+  getRepositoryContents,
+  getFileContent,
+  updateFile,
+  deleteFile,
+  listBranches,
+  createBranch,
+  deleteBranch,
+  createPullRequest,
+  listPullRequests,
+  getPullRequest,
+  mergePullRequest,
+  createIssueComment,
+  createPullRequestReview,
+  createReviewComment,
+  getAuthenticatedUser,
+  getAuthorizedScopes,
+  getRateLimit
 };

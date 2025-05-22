@@ -338,34 +338,26 @@ async function clearExpiredData() {
   
   try {
     for (const storeName of Object.keys(CACHE_CONFIG.stores)) {
-      const items = await retrieveData(storeName);
-      
-      // retrieveData already filters out expired items, so we need to get all items
-      // and manually check which ones are expired
+      // Get all items, including expired
       const transaction = cacheState.db.transaction(storeName, 'readwrite');
       const store = transaction.objectStore(storeName);
-      
       const request = store.getAll();
-      
+
       await new Promise((resolve, reject) => {
-        request.onsuccess = async event => {
+        request.onsuccess = event => {
           const allItems = event.target.result;
-          
           // Delete expired items
           for (const item of allItems) {
             if (isDataExpired(item, storeName)) {
               store.delete(item[CACHE_CONFIG.stores[storeName].keyPath]);
             }
           }
-          
           transaction.oncomplete = resolve;
           transaction.onerror = reject;
         };
-        
         request.onerror = reject;
       });
     }
-    
     console.log('Cleared expired cache data');
   } catch (error) {
     console.error('Error clearing expired data:', error);
@@ -447,7 +439,7 @@ async function syncData() {
     // Get pending actions
     const pendingActions = await getPendingActions();
     
-    if (pendingActions.length === 0) {
+    if (!pendingActions.length) {
       return [];
     }
     
@@ -548,7 +540,11 @@ function isOfflineModeEnabled() {
 }
 
 // Schedule periodic cleanup of expired data
-setInterval(clearExpiredData, 60 * 60 * 1000); // Every hour
+setInterval(() => {
+  if (cacheState.isInitialized) {
+    clearExpiredData();
+  }
+}, 60 * 60 * 1000); // Every hour
 
 // Export cache functions
 export {

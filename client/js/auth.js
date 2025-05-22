@@ -77,7 +77,7 @@ function restoreAuthState() {
       authState.refreshToken = data.refreshToken;
       
       // Set token for API requests
-      if (window.GittyGitAPI) {
+      if (window.GittyGitAPI && typeof window.GittyGitAPI.setToken === 'function') {
         window.GittyGitAPI.setToken(authState.token);
       }
       
@@ -103,7 +103,7 @@ function clearAuthState() {
   localStorage.removeItem('github_user_data');
   
   // Update API token
-  if (window.GittyGitAPI) {
+  if (window.GittyGitAPI && typeof window.GittyGitAPI.setToken === 'function') {
     window.GittyGitAPI.setToken(null);
   }
 }
@@ -200,7 +200,7 @@ async function handleAuthCallback() {
       authState.refreshToken = tokenData.refreshToken;
       
       // Set token for API requests
-      if (window.GittyGitAPI) {
+      if (window.GittyGitAPI && typeof window.GittyGitAPI.setToken === 'function') {
         window.GittyGitAPI.setToken(authState.token);
       }
       
@@ -271,7 +271,7 @@ async function refreshAccessToken(refreshToken) {
     authState.refreshToken = tokenData.refreshToken;
     
     // Set token for API requests
-    if (window.GittyGitAPI) {
+    if (window.GittyGitAPI && typeof window.GittyGitAPI.setToken === 'function') {
       window.GittyGitAPI.setToken(authState.token);
     }
     

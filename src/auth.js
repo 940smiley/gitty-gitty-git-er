@@ -94,14 +94,12 @@ async function validateOAuthToken(token) {
 async function getTokenScopes(token) {
   try {
     const octokit = createOctokitClient(token);
-    
-    // Make a lightweight request to get the headers
-    const response = await octokit.users.getAuthenticated();
-    
-    // Extract scopes from the response headers
+
+    // Use the request API to get headers
+    const response = await octokit.request('GET /user');
     const scopeHeader = response.headers['x-oauth-scopes'] || '';
     const scopes = scopeHeader.split(',').map(s => s.trim()).filter(Boolean);
-    
+
     return scopes;
   } catch (error) {
     logger.error(`Failed to get token scopes: ${error.message}`);

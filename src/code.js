@@ -31,11 +31,14 @@ function createCodeManager(octokit) {
           throw new Error(`Requested path is not a file: ${path}`);
         }
         
-        // If the file content is binary, we just return the metadata
-        const content = data.encoding === 'base64' 
-          ? Buffer.from(data.content, 'base64').toString('utf8')
+        const isText = data.encoding === 'base64' && !data.content.match(/[^A-Za-z0-9+/=]/);
+
+        const content = data.encoding === 'base64'
+          ? (isText
+              ? Buffer.from(data.content, 'base64').toString('utf8')
+              : data.content) // leave as base64 for binary
           : null;
-          
+
         logger.info(`Retrieved file: ${owner}/${repo}/${path}`);
         
         return {

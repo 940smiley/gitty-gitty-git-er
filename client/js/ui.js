@@ -39,6 +39,10 @@ function initUI(appState, callbacks = {}) {
   
   // Register event listeners
   document.addEventListener('click', handleDocumentClick);
+
+  // Listen for online/offline events and update UI
+  window.addEventListener('online', () => updateOnlineStatus(true));
+  window.addEventListener('offline', () => updateOnlineStatus(false));
 }
 
 /**
@@ -390,14 +394,18 @@ function handleDocumentClick(event) {
  */
 function updateOnlineStatus(isOnline) {
   const indicator = document.getElementById('connection-indicator');
+  if (indicator) {
+    if (!isOnline) {
+      indicator.classList.add('offline');
+      indicator.textContent = 'Offline';
+    } else {
+      indicator.classList.remove('offline');
+      indicator.textContent = 'Online';
+    }
+  }
   const statusElement = document.getElementById('connection-status');
-  
-  if (!isOnline) {
-    indicator.classList.add('offline');
-    statusElement.textContent = 'Offline';
-  } else {
-    indicator.classList.remove('offline');
-    statusElement.textContent = 'Online';
+  if (statusElement) {
+    statusElement.textContent = isOnline ? 'Online' : 'Offline';
   }
 }
 

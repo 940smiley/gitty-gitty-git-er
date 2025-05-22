@@ -168,9 +168,7 @@ function setupAuthRoutes(app, bot) {
       } else if (code) {
         // Handle initial authorization
         params.code = code;
-        params.redirect_uri = req.headers.referer ? 
-          new URL(req.headers.referer).origin + '/auth/callback' : 
-          'http://localhost:3000/auth/callback';
+        params.redirect_uri = config.github.redirectUri || 'http://localhost:3000/auth/callback';
       } else {
         return res.status(400).json({ error: 'Invalid request parameters' });
       }

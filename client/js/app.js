@@ -3,10 +3,14 @@
  * Main application entry point
  */
 
+// Import all API functions for use in the app
+import * as GittyGitAPI from './api.js';
 import { initAuth, isAuthenticated, loginWithGitHub, logoutFromGitHub, getCurrentUser } from './auth.js';
-import { initAPI } from './api.js';
 import { initUI, showPage, showNotification } from './ui.js';
 import { initCache, syncData } from './cache.js';
+
+// Attach API to window for legacy/global access (ensures window.GittyGitAPI is available)
+window.GittyGitAPI = GittyGitAPI;
 
 // Store application state
 const appState = {
@@ -37,8 +41,6 @@ async function initApp() {
     onLogin: handleUserLogin,
     onLogout: handleUserLogout
   });
-  
-  initAPI();
   
   initCache({
     onSyncComplete: handleSyncComplete

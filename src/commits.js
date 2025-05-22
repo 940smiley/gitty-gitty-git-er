@@ -125,8 +125,7 @@ function createCommitsManager(octokit) {
           const { data: blobData } = await octokit.git.createBlob({
             owner,
             repo,
-            content: Buffer.from(change.content).toString('base64'),
-            encoding: 'base64'
+            content: change.content
           });
           
           treeItems.push({
