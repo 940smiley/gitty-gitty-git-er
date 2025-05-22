@@ -68,78 +68,36 @@ const PullRequests = () => {
       {/* Pull Requests List */}
       {isLoading ? (
         <div className="text-center py-12">
-          <svg className="animate-spin h-10 w-10 mx-auto text-green-500" xmlns="htt# Let's check what directories we have
-mkdir -p client/src/components/layouts/
-mkdir -p client/src/pages/
-mkdir -p client/src/context/
-mkdir -p client/src/services/
-mkdir -p client/src/hooks/
-mkdir -p client/src/utils/
-mkdir -p client/public/icons/
-mkdir -p server/src/{api,auth,middleware,utils}
-mkdir -p electron/src
+          <svg className="animate-spin h-10 w-10 mx-auto text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+          </svg>
+          <p className="mt-4 text-gray-500 dark:text-gray-400">Loading pull requests...</p>
+        </div>
+      ) : error ? (
+        <div className="text-center py-12 text-red-500">Error loading pull requests.</div>
+      ) : (
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+          <ul>
+            {filteredPullRequests?.length === 0 ? (
+              <li className="p-4 text-gray-500 dark:text-gray-400">No pull requests found.</li>
+            ) : (
+              filteredPullRequests.map(pr => (
+                <li key={pr.id} className="border-b border-gray-200 dark:border-gray-700 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                  <Link to={`/repo/${pr.repository?.full_name}/pull/${pr.number}`} className="text-green-600 dark:text-green-400 font-semibold hover:underline">
+                    {pr.title}
+                  </Link>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    {pr.repository?.full_name} &middot; #{pr.number} &middot; {pr.state}
+                  </div>
+                </li>
+              ))
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
 
-ls -la client/src/
-# Let's first create all necessary directories and verify they exist
-mkdir -p client/src/components/layouts
-mkdir -p client/src/pages
-mkdir -p client/src/context
-mkdir -p client/src/services
-mkdir -p client/src/hooks
-mkdir -p client/src/utils
-mkdir -p client/public/icons
-mkdir -p server/src/{api,auth,middleware,utils}
-mkdir -p electron/src
-
-# Verify that directories exist
-ls -la client/src/
-ls -la client/src/components/
-ls -la client/src/pages/
-ls -la client/src/context/
-ls -la client/src/services/
-# Let's create files directly without worrying about directory structure
-# First, let's create main.jsx
-cat << 'EOF' > client/src/main.jsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import App from './App';
-import { AuthProvider } from './context/AuthContext';
-import './index.css';
-
-// Create a client for React Query
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-      staleTime: 30000
-    }
-  }
-});
-
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
-  </React.StrictMode>
-);
-
-// Register service worker for PWA
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
-        console.log('SW registered: ', registration);
-      })
-      .catch(registrationError => {
-        console.log('SW registration failed: ', registrationError);
-      });
-  });
-}
+export default PullRequests;

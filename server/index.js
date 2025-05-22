@@ -34,6 +34,11 @@ app.use((req, res, next) => {
 // Public routes
 app.use('/api/auth', authRoutes);
 
+// Public test route for /api (no authentication required)
+app.get('/api', (req, res) => {
+  res.json({ message: 'API is working!' });
+});
+
 // Protected routes
 app.use('/api/github', authenticateToken, apiRoutes);
 

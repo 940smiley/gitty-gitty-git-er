@@ -8,10 +8,10 @@ import AuthLayout from './components/layouts/AuthLayout';
 
 // Pages
 import Dashboard from './pages/Dashboard';
-import Repositories from './pages/Repositories';
+// import Repositories from './pages/Repositories';
 import RepositoryDetail from './pages/RepositoryDetail';
 import PullRequests from './pages/PullRequests';
-import CodeExplorer from './pages/CodeExplorer';
+// import CodeExplorer from './pages/CodeExplorer';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
 import Settings from './pages/Settings';
@@ -68,7 +68,7 @@ function App() {
       <Route path="/repositories" element={
         <ProtectedRoute>
           <MainLayout>
-            <Repositories />
+            {/* <Repositories /> */}
           </MainLayout>
         </ProtectedRoute>
       } />
@@ -92,7 +92,7 @@ function App() {
       <Route path="/code/:owner/:repo" element={
         <ProtectedRoute>
           <MainLayout>
-            <CodeExplorer />
+            {/* <CodeExplorer /> */}
           </MainLayout>
         </ProtectedRoute>
       } />

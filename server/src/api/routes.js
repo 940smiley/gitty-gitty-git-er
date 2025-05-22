@@ -44,33 +44,12 @@ const handleGitHubError = (error, res) => {
 
 /**
  * Generic GitHub API proxy
- ^
-1.4.0",
-    "cookie-parser": "
-^
-1.4.6",
-    "cors": "
-^
-2.8.5",
-    "dotenv": "
-^
-16.0.3",
-    "express": "
-^
-4.18.2",
-    "jsonwebtoken": "
-^
-9.0.0",
-    "winston": "
-^
-3.8.2"
-  },
-  "devDependencies": {
-    "jest": "
-^
-29.5.0",
-    "nodemon": "
-^
-2.0.22"
-  }
-}
+ */
+
+// Example test route to verify API is working
+router.get('/', (req, res) => {
+  res.json({ message: 'GitHub API proxy is working!' });
+});
+
+// Export the router
+module.exports = router;

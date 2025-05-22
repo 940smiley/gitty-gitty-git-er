@@ -1,7 +1,8 @@
 {
   "name": "gitty-gitty-git-er",
   "version": "1.0.0",
-  "description": "A comprehensive GitHub bot with standalone application capabilities",
+  "description": "A comprehensive GitHub manager with standalone application capabilities",
+  "private": true,
   "scripts": {
     "start": "npm run start:server",
     "start:server": "cd server && npm start",
@@ -17,16 +18,18 @@
   },
   "keywords": [
     "github",
-    "bot",
     "automation",
+    "bot",
     "pwa",
     "standalone"
   ],
-  "author": "",
+  "author": "Your Name",
   "license": "MIT",
   "devDependencies": {
-    "concurrently": "
-^
-8.0.1"
+    "concurrently": "^8.0.1",
+    "esbuild": "^0.25.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
