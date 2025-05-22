@@ -4,7 +4,7 @@
  */
 
 const { Octokit } = require('@octokit/rest');
-const config = require('../config');
+const config = require('../../config');
 const logger = require('./utils/logger');
 
 /**

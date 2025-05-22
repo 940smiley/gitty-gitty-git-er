@@ -7,9 +7,9 @@
 const API_CONFIG = {
   baseUrl: 'https://api.github.com',
   proxyUrl: '/api/github', // For CORS and token hiding in client app
-  useProxy: true, // Whether to use the proxy or direct API calls
+  useProxy: true,
   version: 'v3',
-  timeout: 10000, // 10 seconds
+  timeout: 10000,
   headers: {
     'Accept': 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28'
@@ -27,19 +27,13 @@ let apiState = {
  * Initialize the API module
  * @param {Object} options - Configuration options
  */
-function initAPI(options = {}) {
-  console.log('Initializing API module...');
-  
-  // Override default configuration with provided options
+export function initAPI(options = {}) {
   if (options.baseUrl) API_CONFIG.baseUrl = options.baseUrl;
   if (options.proxyUrl) API_CONFIG.proxyUrl = options.proxyUrl;
   if (options.useProxy !== undefined) API_CONFIG.useProxy = options.useProxy;
   if (options.version) API_CONFIG.version = options.version;
   if (options.timeout) API_CONFIG.timeout = options.timeout;
-  
-  // Create global API object
-  window.GittyGitAPI = createAPIInstance();
-  
+
   // Restore token from localStorage if available
   try {
     const tokenData = localStorage.getItem('github_token_data');
@@ -58,7 +52,7 @@ function initAPI(options = {}) {
  * Set the authentication token for API requests
  * @param {string} token - OAuth access token
  */
-function setToken(token) {
+export function setToken(token) {
   apiState.token = token;
 }
 
@@ -66,7 +60,7 @@ function setToken(token) {
  * Create the API instance with all methods
  * @returns {Object} API instance with all methods
  */
-function createAPIInstance() {
+export function createAPIInstance() {
   return {
     // Core API functions
     setToken,
@@ -805,58 +799,32 @@ async function getRateLimit() {
   return rateLimit;
 }
 
-// Export API functions for use in other modules (ESM and global)
-export {
-  initAPI,
-  setToken,
-  createRepository,
-  listRepositories,
-  getRepository,
-  updateRepository,
-  deleteRepository,
-  getRepositoryContents,
-  getFileContent,
-  updateFile,
-  deleteFile,
-  listBranches,
-  createBranch,
-  deleteBranch,
-  createPullRequest,
-  listPullRequests,
-  getPullRequest,
-  mergePullRequest,
-  createIssueComment,
-  createPullRequestReview,
-  createReviewComment,
-  getAuthenticatedUser,
-  getAuthorizedScopes,
-  getRateLimit
-};
-
-// Also attach to window for global access if needed (for legacy code)
-window.GittyGitAPI = {
-  initAPI,
-  setToken,
-  createRepository,
-  listRepositories,
-  getRepository,
-  updateRepository,
-  deleteRepository,
-  getRepositoryContents,
-  getFileContent,
-  updateFile,
-  deleteFile,
-  listBranches,
-  createBranch,
-  deleteBranch,
-  createPullRequest,
-  listPullRequests,
-  getPullRequest,
-  mergePullRequest,
-  createIssueComment,
-  createPullRequestReview,
-  createReviewComment,
-  getAuthenticatedUser,
-  getAuthorizedScopes,
-  getRateLimit
-};
+// Attach to window for global access if needed (for legacy/debugging)
+if (typeof window !== 'undefined') {
+  window.GittyGitAPI = {
+    initAPI,
+    setToken,
+    createRepository,
+    listRepositories,
+    getRepository,
+    updateRepository,
+    deleteRepository,
+    getRepositoryContents,
+    getFileContent,
+    updateFile,
+    deleteFile,
+    listBranches,
+    createBranch,
+    deleteBranch,
+    createPullRequest,
+    listPullRequests,
+    getPullRequest,
+    mergePullRequest,
+    createIssueComment,
+    createPullRequestReview,
+    createReviewComment,
+    getAuthenticatedUser,
+    getAuthorizedScopes,
+    getRateLimit
+  };
+}

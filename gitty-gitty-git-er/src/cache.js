@@ -546,7 +546,7 @@ setInterval(() => {
   }
 }, 60 * 60 * 1000); // Every hour
 
-// Export cache functions
+// Export cache functions for use in React
 export {
   initCache,
   storeData,

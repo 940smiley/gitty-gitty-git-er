@@ -5,7 +5,7 @@
 const winston = require('winston');
 const fs = require('fs');
 const path = require('path');
-const config = require('../../config');
+const config = require('../../../config');
 
 // Ensure logs directory exists
 const logsDir = path.resolve(__dirname, '../../logs');

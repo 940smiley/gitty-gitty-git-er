@@ -69,21 +69,20 @@ html {
 }
 
 body {
+  background: var(--color-bg);
+  color: var(--color-text);
   font-family: var(--font-family);
-  color: var(--text-color);
-  background-color: var(--bg-color);
-  line-height: 1.5;
+  margin: 0;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
 }
 
 a {
-  color: var(--info-color);
+  color: var(--color-accent);
   text-decoration: none;
 }
 
 a:hover {
+  color: var(--color-accent-hover);
   text-decoration: underline;
 }
 
@@ -165,20 +164,19 @@ img {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--bg-secondary);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-accent);
+  color: #fff;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--border-radius);
+  padding: 0.5em 1em;
   cursor: pointer;
-  transition: all 0.2s ease;
   font-weight: 500;
-  line-height: 20px;
+  transition: background 0.2s, border 0.2s;
 }
 
 .btn:hover {
-  background-color: #e8eaed;
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
 }
 
 .btn-primary {
@@ -846,4 +844,21 @@ footer {
   .repositories-grid {
     grid-template-columns: 1fr;
   }
+}
+
+nav {
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+  padding: 1em;
+  margin-bottom: 1em;
+  box-shadow: var(--box-shadow);
+}
+
+.card, .container {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5em;
+  margin: 1em 0;
 }
