@@ -38,6 +38,9 @@ const MainLayout = ({ children }) => {
                 <Link to="/repositories" className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/repositories')}`}>
                   Repositories
                 </Link>
+                <Link to="/repositories/new" className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/repositories/new')}`}>
+                  New Repository
+                </Link>
                 <Link to="/pull-requests" className={`px-3 py-2 rounded-md text-sm font-medium ${isActive('/pull-requests')}`}>
                   Pull Requests
                 </Link>

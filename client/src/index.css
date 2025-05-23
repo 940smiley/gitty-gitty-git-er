@@ -1,78 +1,33 @@
+/* Reset CSS */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+img, svg {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Tailwind directives */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --primary-color: #2da44e;
-  --primary-dark: #2c974b;
-  --primary-light: #46c55a;
-  --secondary-color: #0d1117;
-  --text-color: #24292f;
-  --text-light: #57606a;
-  --bg-color: #ffffff;
-  --bg-light: #f6f8fa;
-  --border-color: #d0d7de;
-  --error-color: #cf222e;
-  --warning-color: #bf8700;
-  --success-color: #1a7f37;
-}
-
-/* Dark mode variables */
-.dark {
-  --primary-color: #2ea043;
-  --primary-dark: #39d353;
-  --primary-light: #26a641;
-  --secondary-color: #161b22;
-  --text-color: #c9d1d9;
-  --text-light: #8b949e;
-  --bg-color: #0d1117;
-  --bg-light: #161b22;
-  --border-color: #30363d;
-}
-
-/* Base styles */
-html {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  @apply text-base;
-}
-
-body {
-  @apply m-0 p-0 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-a {
-  @apply text-blue-600 dark:text-blue-400 no-underline hover:underline;
-}
-
-/* Custom utilities */
+/* Custom button styles */
 @layer components {
   .btn {
-    @apply px-4 py-2 rounded-md font-medium transition-colors;
-  }
-  
-  .btn-primary {
-    @apply bg-green-600 text-white hover:bg-green-700;
-  }
-  
-  .btn-secondary {
-    @apply bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600;
-  }
-
-  .btn-danger {
-    @apply bg-red-600 text-white hover:bg-red-700;
+    @apply px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors;
   }
   
   .card {
     @apply bg-white dark:bg-gray-800 rounded-lg shadow-md p-4;
-  }
-  
-  .input {
-    @apply block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm 
-    focus:outline-none focus:ring-green-500 focus:border-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100;
-  }
-  
-  .label {
-    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
   }
 }

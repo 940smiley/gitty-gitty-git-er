@@ -1,6 +1,12 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { axiosInstance } from '../services/apiClient';
+import axios from 'axios';
+
+// Create axios instance
+export const axiosInstance = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || '',
+  withCredentials: true
+});
 
 // Create context
 const AuthContext = createContext();
@@ -15,10 +21,13 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        console.log('Checking authentication...');
         const response = await axiosInstance.get('/api/auth/user');
+        console.log('Auth response:', response.data);
         setUser(response.data);
         setIsAuthenticated(true);
       } catch (error) {
+        console.error('Auth check failed:', error);
         setUser(null);
         setIsAuthenticated(false);
       } finally {
@@ -31,7 +40,9 @@ export const AuthProvider = ({ children }) => {
 
   // Login function - redirect to GitHub OAuth
   const login = () => {
-    window.location.href = `${import.meta.env.VITE_API_URL || ''}/api/auth/github`;
+    console.log('Redirecting to GitHub OAuth...');
+    // Using full URL to avoid any path issues
+    window.location.href = 'http://localhost:3001/api/auth/github';
   };
 
   // Logout function

@@ -6,6 +6,10 @@ import { githubApi } from '../services/apiClient';
 const RepositoryDetail = () => {
   const { owner, repo } = useParams();
   const [activeTab, setActiveTab] = useState('overview');
+  const [pagesStatus, setPagesStatus] = useState(null);
+  const [pagesUrl, setPagesUrl] = useState(null);
+  const [enablingPages, setEnablingPages] = useState(false);
+  const [pagesError, setPagesError] = useState(null);
   
   // Fetch repository data
   const { data: repository, isLoading, error } = useQuery(
@@ -25,6 +29,25 @@ const RepositoryDetail = () => {
       enabled: !!repository
     }
   );
+
+  // Handler to enable GitHub Pages
+  const handleEnablePages = async () => {
+    setEnablingPages(true);
+    setPagesError(null);
+    try {
+      // Use default branch for Pages source
+      const branch = repository.default_branch || 'main';
+      const result = await githubApi.enablePages(owner, repo, branch, '/');
+      setPagesStatus('enabled');
+      // GitHub Pages URL format: https://<owner>.github.io/<repo>/
+      setPagesUrl(`https://${owner}.github.io/${repo}/`);
+    } catch (err) {
+      setPagesError(err?.response?.data?.error || 'Failed to enable GitHub Pages.');
+      setPagesStatus('error');
+    } finally {
+      setEnablingPages(false);
+    }
+  };
   
   if (isLoading) {
     return (
@@ -157,6 +180,28 @@ const RepositoryDetail = () => {
             <div className="prose dark:prose-invert max-w-none">
               <h3>About this repository</h3>
               <p>{repository.description || 'No description provided.'}</p>
+              
+              {/* GitHub Pages UI */}
+              <div className="mt-6 p-4 border rounded bg-gray-50 dark:bg-gray-900">
+                <h4 className="font-semibold mb-2">GitHub Pages</h4>
+                {pagesStatus === 'enabled' && pagesUrl ? (
+                  <div className="text-green-600 dark:text-green-400 mb-2">
+                    Pages enabled! Your site is published at:
+                    <a href={pagesUrl} target="_blank" rel="noopener noreferrer" className="ml-2 underline">{pagesUrl}</a>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded disabled:opacity-50"
+                      onClick={handleEnablePages}
+                      disabled={enablingPages}
+                    >
+                      {enablingPages ? 'Enabling Pages...' : 'Enable GitHub Pages'}
+                    </button>
+                    {pagesError && <div className="text-red-500 mt-2">{pagesError}</div>}
+                  </>
+                )}
+              </div>
               
               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="border border-gray-200 dark:border-gray-700 rounded-md p-4">

@@ -135,6 +135,12 @@ export const githubApi = {
     
     const response = await axiosInstance.delete(`/api/github/repos/${owner}/${repo}/contents/${path}`, { data });
     return response.data;
+  },
+  
+  // GitHub Pages
+  enablePages: async (owner, repo, branch = 'gh-pages', path = '/') => {
+    const response = await axiosInstance.post(`/api/github/repos/${owner}/${repo}/pages/enable`, { branch, path });
+    return response.data;
   }
 };
 

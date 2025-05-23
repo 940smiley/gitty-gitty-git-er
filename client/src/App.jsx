@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthContext } from './context/AuthContext';
 
 // Layouts
@@ -8,30 +8,23 @@ import AuthLayout from './components/layouts/AuthLayout';
 
 // Pages
 import Dashboard from './pages/Dashboard';
-// import Repositories from './pages/Repositories';
-import RepositoryDetail from './pages/RepositoryDetail';
-import PullRequests from './pages/PullRequests';
-// import CodeExplorer from './pages/CodeExplorer';
+import Repositories from './pages/repositories';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
+import Debug from './pages/Debug'; // Fixed import case
+import PullRequests from './pages/PullRequests';
 import Settings from './pages/Settings';
+import NewRepository from './pages/NewRepository'; // Import NewRepository component
 
 // Guards
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuthContext();
-  const navigate = useNavigate();
-  
-  React.useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      navigate('/login');
-    }
-  }, [isAuthenticated, loading, navigate]);
   
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
   
-  return isAuthenticated ? children : null;
+  return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
 const PublicRoute = ({ children }) => {
@@ -68,15 +61,16 @@ function App() {
       <Route path="/repositories" element={
         <ProtectedRoute>
           <MainLayout>
-            {/* <Repositories /> */}
+            <Repositories />
           </MainLayout>
         </ProtectedRoute>
       } />
       
-      <Route path="/repositories/:owner/:repo" element={
+      {/* Add New Repository route */}
+      <Route path="/repositories/new" element={
         <ProtectedRoute>
           <MainLayout>
-            <RepositoryDetail />
+            <NewRepository />
           </MainLayout>
         </ProtectedRoute>
       } />
@@ -89,18 +83,19 @@ function App() {
         </ProtectedRoute>
       } />
       
-      <Route path="/code/:owner/:repo" element={
-        <ProtectedRoute>
-          <MainLayout>
-            {/* <CodeExplorer /> */}
-          </MainLayout>
-        </ProtectedRoute>
-      } />
-      
       <Route path="/settings" element={
         <ProtectedRoute>
           <MainLayout>
             <Settings />
+          </MainLayout>
+        </ProtectedRoute>
+      } />
+      
+      {/* Debug route */}
+      <Route path="/debug" element={
+        <ProtectedRoute>
+          <MainLayout>
+            <Debug />
           </MainLayout>
         </ProtectedRoute>
       } />
