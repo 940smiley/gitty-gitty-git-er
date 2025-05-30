@@ -15,6 +15,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  deployments: write
 
 # Allow only one concurrent deployment
 concurrency:
@@ -64,6 +65,8 @@ jobs:
           VITE_API_URL: ${{ vars.API_URL || 'https://api.gitty-gitty-git-er.example.com' }}
           # Set production mode
           NODE_ENV: production
+          # GitHub Pages environment
+          GITHUB_PAGES: true
         run: cd client && npm run build
       
       - name: Upload artifact
@@ -82,7 +85,18 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     
     steps:
+      - name: Verify GitHub Pages Status
+        run: |
+          echo "Verifying GitHub Pages status before deployment"
+          # This will help identify issues with GitHub Pages configuration
+          curl -s -I "https://api.github.com/repos/${{ github.repository }}/pages" \
+          -H "Authorization: token ${{ github.token }}" \
+          -H "Accept: application/vnd.github.v3+json"
+      
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v3
+        with:
+          artifact_name: github-pages
+          timeout: 600000
 
