@@ -12,7 +12,7 @@ import Dashboard from './pages/Dashboard';
 import Repositories from './pages/repositories';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
-import Debug from './pages/Debug'; // Fixed import case
+import Debug from './pages/debug'; // Using correct case-sensitive path
 import PullRequests from './pages/PullRequests';
 import Settings from './pages/Settings';
 import NewRepository from './pages/NewRepository'; // Import NewRepository component
