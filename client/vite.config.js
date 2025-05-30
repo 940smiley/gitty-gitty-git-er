@@ -12,18 +12,16 @@ export default defineConfig(({ command, mode }) => {
   // Check if we're in production mode
   const isProduction = mode === 'production';
   
-  // Determine if we're running in Azure Static Web Apps
-  const isAzure = Boolean(process.env.GITHUB_WORKFLOW) || Boolean(process.env.AZURE_STATIC_WEB_APPS_API_TOKEN);
+  // Determine if we're running in GitHub Pages
+  const isGitHubPages = Boolean(process.env.GITHUB_ACTIONS);
   
   // Set base URL based on deployment environment
-  // - For Azure Static Web Apps: '/'
-  // - For GitHub Pages: '/gitty-gitty-git-er/'
-  // - For local development: '/'
-  const base = isProduction && !isAzure ? '/gitty-gitty-git-er/' : '/';
+  // For GitHub Pages, use the repository name as the base
+  const base = isProduction && isGitHubPages ? '/gitty-gitty-git-er/' : '/';
   
   // Debug configuration loading
   console.log(`Running in ${mode} mode with base: ${base}`);
-  console.log(`Azure Static Web Apps: ${isAzure ? 'Yes' : 'No'}`);
+  console.log(`GitHub Pages: ${isGitHubPages ? 'Yes' : 'No'}`);
   console.log('API URL from env:', env.VITE_API_URL);
 
   return {
@@ -56,27 +54,23 @@ export default defineConfig(({ command, mode }) => {
           ],
           categories: ['productivity', 'developer tools', 'utilities']
         },
-        // Configure the service worker based on environment
-        ...(isAzure 
-          ? {
-              // For Azure, use a simpler auto-generated service worker
-              registerType: 'autoUpdate',
-              workbox: {
-                clientsClaim: true,
-                skipWaiting: true
-              }
-            } 
-          : {
-              // For other environments, use our custom service worker
-              strategy: 'injectManifest',
-              swSrc: './service-worker.js',
-              injectRegister: 'auto',
-              injectManifest: {
-                globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,ttf,eot}'],
-                globIgnores: ['**/node_modules/**/*']
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+          navigateFallback: null,
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/api\.github\.com\/.*/i,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'github-api-cache',
+                expiration: {
+                  maxEntries: 50,
+                  maxAgeSeconds: 60 * 60 // 1 hour
+                }
               }
             }
-        ),
+          ]
+        },
         devOptions: {
           enabled: true,
           type: 'module'
@@ -150,20 +144,20 @@ export default defineConfig(({ command, mode }) => {
     },
     // Define environment variables with defaults for better compatibility
     define: {
-      // Provide fallbacks for environment variables
+      'import.meta.env.BASE_URL': JSON.stringify(base),
       'import.meta.env.VITE_API_URL': JSON.stringify(
-        isAzure
-          ? '/api' // In Azure, use the relative API path
+        isGitHubPages
+          ? '/api' // In GitHub Pages, use relative API path
           : (env.VITE_API_URL || 'http://localhost:3001')
       ),
       'import.meta.env.VITE_ENABLE_MOCK_AUTH': JSON.stringify(
-        isAzure 
-          ? 'false' // In Azure, use real auth
+        isGitHubPages 
+          ? 'true' // In GitHub Pages, use mock auth since there's no backend
           : (env.VITE_ENABLE_MOCK_AUTH || 'true')
       ),
       'import.meta.env.VITE_DEBUG': JSON.stringify(env.VITE_DEBUG || 'true'),
       'import.meta.env.VITE_APP_NAME': JSON.stringify(env.VITE_APP_NAME || 'Gitty-Gitty-Git-Er'),
-      'import.meta.env.VITE_IS_AZURE': JSON.stringify(isAzure ? 'true' : 'false')
+      'import.meta.env.MODE': JSON.stringify(mode)
     }
   };
 });

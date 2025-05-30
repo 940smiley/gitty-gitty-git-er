@@ -151,7 +151,7 @@ try {
   root.render(
     <React.StrictMode>
       <ErrorBoundary>
-        <BrowserRouter>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
               <App />
