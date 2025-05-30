@@ -228,8 +228,7 @@ export default function App() {
 }
 
 // Export public functions
-export { 
-  navigateToPage,
-  updateOnlineStatus,
-  setTheme
-};
+export function updateOnlineStatus(status) {
+  // This function can be implemented to update online status from outside the component
+  console.log('Online status updated:', status);
+}
