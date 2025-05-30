@@ -1,6 +1,6 @@
-name: Deploy to GitHub Pages
-
-on:
+name: Deploy GitHub Pages site
+ uses: actions/deploy-pages@v4.0.5
+  on:
   # Trigger deployment on pushes to main branch
   push:
     branches: [main]
@@ -9,19 +9,21 @@ on:
     branches: [main]
   # Allow manual triggering of the workflow
   workflow_dispatch:
+    with:
+  # GitHub token
+      token: ${{ github.token }}
+  # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+        permissions:
+          contents: read
+          pages: write
+          id-token: write
+          deployments: write
+  # Allow only one concurrent deployment
+  concurrency:
+    group: "pages"
+    cancel-in-progress: true
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Allow only one concurrent deployment
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
-
-jobs:
+  jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -64,14 +66,19 @@ jobs:
           VITE_API_URL: ${{ vars.API_URL || 'https://api.gitty-gitty-git-er.example.com' }}
           # Set production mode
           NODE_ENV: production
+          # GitHub Pages environment
+          GITHUB_PAGES: true
         run: cd client && npm run build
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./client/dist
-
-  deploy:
+          # Name of the artifact to deploy
+            artifact_name: github-pages
+              # Time in milliseconds after which to timeout and cancel the deployment (default: 10 minutes)
+              timeout: 600000
+   deploy:
     name: Deploy
     environment:
       name: github-pages
@@ -82,7 +89,35 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     
     steps:
+      - name: Verify GitHub Pages Status
+        run: |
+          echo "Verifying GitHub Pages status before deployment"
+          # This will help identify issues with GitHub Pages configuration
+          curl -s -I "https://api.github.com/repos/${{ github.repository }}/pages" \
+          -H "Authorization: token ${{ github.token }}" \
+          -H "Accept: application/vnd.github.v3+json"
+      
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v3
+        with:
+          artifact_name: github-pages
+          timeout: 600000
 
+  # Maximum number of status report errors before cancelling a deployment (default: 10)
+  error_count: 10
+  # Time in milliseconds between two deployment status report (default: 5 seconds)
+  reporting_interval: 5000
+
+  # Is this attempting to deploy a pull request as a GitHub Pages preview site? (NOTE: This feature is only in alpha currently and is not available to the public!)
+  preview: false
+
+       
+
+
+
+
+ 
+
+
+                      
