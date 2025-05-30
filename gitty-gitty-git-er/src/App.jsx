@@ -226,3 +226,12 @@ export default function App() {
     </div>
   );
 }
+<<<<<<< HEAD
+=======
+
+// Export public functions
+export function updateOnlineStatus(status) {
+  // This function can be implemented to update online status from outside the component
+  console.log('Online status updated:', status);
+}
+>>>>>>> 3a6e7d034a086c4d35c13c9b7d2a25bce5233a87
