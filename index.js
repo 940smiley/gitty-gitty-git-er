@@ -279,11 +279,13 @@ function setupGitHubAPIProxy(app, bot) {
       const allowedPaths = ['/repos', '/users', '/issues']; // Example allow-list
       const requestPath = new URL(req.url, 'http://localhost').pathname; // Extract pathname
       
-      if (!allowedPaths.some(path => requestPath.startsWith(path))) {
+      // Normalize and validate the request path
+      const normalizedPath = path.posix.normalize(requestPath); // Prevent path traversal
+      if (!allowedPaths.includes(normalizedPath)) { // Ensure exact match with allow-list
         return res.status(400).json({ error: 'Invalid API path' });
       }
       
-      const githubUrl = `https://api.github.com${requestPath}`;
+      const githubUrl = `https://api.github.com${normalizedPath}`;
       
       // Clone headers, removing host
       const headers = { ...req.headers };
