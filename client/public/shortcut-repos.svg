@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <!-- Base circle -->
+  <circle cx="96" cy="96" r="88" fill="#2da44e" />
+  
+  <!-- Repository icon -->
+  <g fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Repo folder -->
+    <rect x="48" y="56" width="96" height="80" rx="8" />
+    
+    <!-- Top bar of repo -->
+    <path d="M48,72 L144,72" />
+    
+    <!-- Code lines -->
+    <path d="M64,88 L128,88" />
+    <path d="M64,104 L112,104" />
+    <path d="M64,120 L96,120" />
+  </g>
+</svg>
+

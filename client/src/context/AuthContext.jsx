@@ -41,8 +41,20 @@ export const AuthProvider = ({ children }) => {
   // Login function - redirect to GitHub OAuth
   const login = () => {
     console.log('Redirecting to GitHub OAuth...');
-    // Using full URL to avoid any path issues
-    window.location.href = 'http://localhost:3001/api/auth/github';
+    
+    // Get the API URL from environment variables or fallback
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+    
+    if (!apiUrl) {
+      console.error('API URL is not configured. Please set VITE_API_URL in your environment variables.');
+      alert('Authentication service is not properly configured. Please contact the administrator.');
+      return;
+    }
+    
+    // Using environment variable for the API URL
+    const authUrl = `${apiUrl}/api/auth/github`;
+    console.log('Auth URL:', authUrl);
+    window.location.href = authUrl;
   };
 
   // Logout function

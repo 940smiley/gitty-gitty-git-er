@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthContext } from './context/AuthContext';
+import './App.css';
 
 // Layouts
 import MainLayout from './components/layouts/MainLayout';
