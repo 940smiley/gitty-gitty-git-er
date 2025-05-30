@@ -24,7 +24,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       # Install dependencies for client and server
@@ -42,7 +42,7 @@ jobs:
       - name: Create .env file
         run: |
           cd client
-          echo "VITE_API_URL=${{ secrets.API_URL || 'https://api.gitty-gitty-git-er.net' }}" > .env
+          echo "VITE_API_URL=/api" > .env
           echo "VITE_GITHUB_CLIENT_ID=${{ secrets.GITHUB_CLIENT_ID }}" >> .env
           echo "VITE_GITHUB_REDIRECT_URI=${{ secrets.GITHUB_REDIRECT_URI || '/.auth/login/github/callback' }}" >> .env
           echo "VITE_APP_NAME=Gitty-Gitty-Git-Er" >> .env
@@ -51,6 +51,8 @@ jobs:
           echo "VITE_ENABLE_NOTIFICATIONS=true" >> .env
           echo "VITE_ENABLE_PWA=true" >> .env
           echo "VITE_DEFAULT_THEME=light" >> .env
+          echo "VITE_ENABLE_MOCK_AUTH=false" >> .env
+          echo "NODE_ENV=production" >> .env
           echo "Created client .env file"
           cat .env
 

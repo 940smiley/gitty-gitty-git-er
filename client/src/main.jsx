@@ -30,39 +30,39 @@ initLogger.log('Application initialization started');
 // Environment variable validation and logging function
 const validateAndLogEnvironment = () => {
   try {
-    // Check if import.meta exists and has env property
-    if (typeof import.meta === 'undefined' || !import.meta.env) {
-      throw new Error('Environment variables not available - missing import.meta.env');
-    }
+    // Set default values for required environment variables
+    const defaults = {
+      VITE_API_URL: '/api',
+      VITE_APP_NAME: 'Gitty-Gitty-Git-Er',
+      VITE_ENABLE_MOCK_AUTH: 'false',
+      MODE: 'production'
+    };
+
+    // Create a safe environment object that falls back to defaults
+    const safeEnv = {
+      ...defaults,
+      ...(typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env : {})
+    };
     
-    // Log basic environment information
-    const mode = import.meta.env.MODE || 'development';
-    initLogger.log(`Environment: ${mode}`);
+    // Log environment information
+    initLogger.log(`Environment: ${safeEnv.MODE}`);
+    initLogger.log(`API URL: ${safeEnv.VITE_API_URL}`);
+    initLogger.log(`App Name: ${safeEnv.VITE_APP_NAME}`);
+    initLogger.log(`Mock Auth Enabled: ${safeEnv.VITE_ENABLE_MOCK_AUTH}`);
     
-    // Validate critical environment variables
-    const apiUrl = import.meta.env.VITE_API_URL;
-    if (!apiUrl) {
-      initLogger.error('API URL is not defined in environment variables');
-    } else {
-      initLogger.log(`API URL: ${apiUrl}`);
-    }
-    
-    // Log other environment variables with fallbacks
-    const mockAuthEnabled = import.meta.env.VITE_ENABLE_MOCK_AUTH || 'false';
-    initLogger.log(`Mock Auth Enabled: ${mockAuthEnabled}`);
-    
-    // Return validated environment variables for use in the application
     return {
-      mode,
-      apiUrl,
-      mockAuthEnabled: mockAuthEnabled === 'true'
+      mode: safeEnv.MODE,
+      apiUrl: safeEnv.VITE_API_URL,
+      mockAuthEnabled: safeEnv.VITE_ENABLE_MOCK_AUTH === 'true',
+      appName: safeEnv.VITE_APP_NAME
     };
   } catch (error) {
     initLogger.error('Failed to validate environment variables', error);
     return {
-      mode: 'development',
+      mode: 'production',
       apiUrl: '/api',
-      mockAuthEnabled: true
+      mockAuthEnabled: false,
+      appName: 'Gitty-Gitty-Git-Er'
     };
   }
 };
