@@ -1,0 +1,21 @@
+{
+  "routes": [
+    {
+      "route": "/api/*",
+      "serve": "/api/dist/*"
+    },
+    {
+      "route": "/*",
+      "serve": "/client/dist/*",
+      "statusCode": 200
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/images/*.{png,jpg,gif}", "/css/*", "/api/*"]
+  },
+  "platform": {
+    "apiRuntime": "node:18"
+  }
+}
+
