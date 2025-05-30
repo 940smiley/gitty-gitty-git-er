@@ -276,7 +276,14 @@ function setupGitHubAPIProxy(app, bot) {
       }
       
       // Forward the request to GitHub API
-      const githubUrl = `https://api.github.com${req.url}`;
+      const allowedPaths = ['/repos', '/users', '/issues']; // Example allow-list
+      const requestPath = new URL(req.url, 'http://localhost').pathname; // Extract pathname
+      
+      if (!allowedPaths.some(path => requestPath.startsWith(path))) {
+        return res.status(400).json({ error: 'Invalid API path' });
+      }
+      
+      const githubUrl = `https://api.github.com${requestPath}`;
       
       // Clone headers, removing host
       const headers = { ...req.headers };
