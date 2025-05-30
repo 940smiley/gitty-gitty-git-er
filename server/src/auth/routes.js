@@ -1,19 +1,24 @@
+/**
+ * Authentication Routes
+ * Handles GitHub OAuth flow, user sessions and token management
+ */
 const express = require('express');
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
-const { generateAccessToken, generateRefreshToken, authenticateToken } = require('../middleware/auth');
-const config = require('../config');
-const logger = require('../utils/logger');
-
 const router = express.Router();
+const logger = require('../utils/logger');
+const config = require('../config');
+const { generateAccessToken, generateRefreshToken, authenticateToken } = require('../middleware/auth');
 
 /**
  * Initiate GitHub OAuth flow
  */
 router.get('/github', (req, res) => {
-  logger.info(`Initiating GitHub OAuth flow`);
-  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${config.github.clientId}&redirect_uri=${config.github.redirectUri}&scope=${config.github.scope}`;
-  logger.info(`Redirecting to: ${githubAuthUrl}`);
+  logger.info('Initiating GitHub OAuth flow');
+  
+  const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${config.github.clientId}&redirect_uri=${encodeURIComponent(config.github.redirectUri)}&scope=${config.github.scope}`;
+  
+  logger.info(`Redirecting to GitHub: ${githubAuthUrl}`);
   res.redirect(githubAuthUrl);
 });
 
@@ -23,16 +28,14 @@ router.get('/github', (req, res) => {
 router.get('/github/callback', async (req, res) => {
   const { code } = req.query;
   
-  logger.info(`Received GitHub callback with code: ${code ? 'present' : 'missing'}`);
-  
   if (!code) {
     logger.error('No authorization code received from GitHub');
-    return res.status(400).json({ error: 'Authorization code missing' });
+    return res.redirect(`${config.clientOrigin}/login?error=no_code`);
   }
   
   try {
     // Exchange code for access token
-    logger.info('Exchanging code for GitHub access token');
+    logger.info('Exchanging code for access token');
     const tokenResponse = await axios.post(
       'https://github.com/login/oauth/access_token',
       {
@@ -51,14 +54,11 @@ router.get('/github/callback', async (req, res) => {
     const { access_token } = tokenResponse.data;
     
     if (!access_token) {
-      logger.error('Failed to obtain access token from GitHub');
-      logger.error('GitHub response:', tokenResponse.data);
-      return res.redirect(`${config.clientOrigin}/login?error=github_token`);
+      logger.error('Failed to obtain access token', tokenResponse.data);
+      return res.redirect(`${config.clientOrigin}/login?error=token_failure`);
     }
     
-    logger.info('Successfully obtained GitHub access token');
-    
-    // Get user info from GitHub
+    // Get user data from GitHub
     logger.info('Fetching user data from GitHub');
     const userResponse = await axios.get('https://api.github.com/user', {
       headers: {
@@ -67,46 +67,54 @@ router.get('/github/callback', async (req, res) => {
     });
     
     const userData = userResponse.data;
-    logger.info(`Got GitHub user data for: ${userData.login}`);
+    logger.info(`Authenticated GitHub user: ${userData.login}`);
     
     // Create user object for token
     const user = {
       id: userData.id,
       login: userData.login,
+      name: userData.name,
       avatar_url: userData.avatar_url,
+      // Store the GitHub token but don't include it in JWT claims
       github_token: access_token
     };
     
     // Generate tokens
-    logger.info('Generating JWT tokens');
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
+    const accessToken = generateAccessToken({
+      id: user.id,
+      login: user.login,
+      name: user.name,
+      avatar_url: user.avatar_url
+    });
+    
+    const refreshToken = generateRefreshToken({
+      id: user.id,
+      login: user.login
+    });
     
     // Set cookies
-    logger.info('Setting auth cookies');
     res.cookie('token', accessToken, config.cookieOptions);
     res.cookie('refreshToken', refreshToken, config.cookieOptions);
     
     // Redirect to client application
-    logger.info(`Auth complete, redirecting to: ${config.clientOrigin}`);
-    res.redirect(config.clientOrigin);
+    res.redirect(`${config.clientOrigin}/auth/success`);
     
   } catch (error) {
-    logger.error(`GitHub OAuth error: ${error.message}`);
+    logger.error('GitHub OAuth error:', error.message);
     if (error.response) {
-      logger.error('Error response data:', error.response.data);
+      logger.error('Error response:', error.response.data);
     }
-    res.redirect(`${config.clientOrigin}/login?error=github_auth`);
+    
+    res.redirect(`${config.clientOrigin}/login?error=github_error`);
   }
 });
 
 /**
- * Get current user
+ * Get current authenticated user
  */
 router.get('/user', authenticateToken, (req, res) => {
   logger.info(`User data requested for: ${req.user?.login}`);
-  
-  // Remove github_token from user object before sending to client
+  // Don't send the github_token back to the client
   const { github_token, ...user } = req.user;
   res.json(user);
 });
@@ -114,47 +122,43 @@ router.get('/user', authenticateToken, (req, res) => {
 /**
  * Refresh token
  */
-router.post('/refresh', async (req, res) => {
+router.post('/refresh', (req, res) => {
   const refreshToken = req.cookies.refreshToken;
   
-  logger.info('Token refresh requested');
-  
   if (!refreshToken) {
-    logger.error('No refresh token provided');
     return res.status(401).json({ error: 'Refresh token required' });
   }
   
   try {
-    const decoded = jwt.verify(refreshToken, config.jwtSecret);
-    logger.info(`Refresh token valid for user: ${decoded.login}`);
+    const user = jwt.verify(refreshToken, config.jwtSecret);
     
     // Generate new tokens
-    const accessToken = generateAccessToken(decoded);
-    const newRefreshToken = generateRefreshToken(decoded);
+    const accessToken = generateAccessToken(user);
+    const newRefreshToken = generateRefreshToken(user);
     
     // Set cookies
     res.cookie('token', accessToken, config.cookieOptions);
     res.cookie('refreshToken', newRefreshToken, config.cookieOptions);
     
-    logger.info('Tokens refreshed successfully');
     res.json({ message: 'Token refreshed successfully' });
   } catch (error) {
-    logger.error(`Token refresh failed: ${error.message}`);
+    logger.error('Token refresh failed:', error.message);
     res.status(401).json({ error: 'Invalid refresh token' });
   }
 });
 
 /**
- * Logout
+ * Logout user
  */
 router.post('/logout', (req, res) => {
-  logger.info('User logout');
   res.clearCookie('token');
   res.clearCookie('refreshToken');
   res.json({ message: 'Logged out successfully' });
 });
 
-// Add a health check endpoint
+/**
+ * Health check endpoint
+ */
 router.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });

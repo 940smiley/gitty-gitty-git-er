@@ -18,7 +18,7 @@ const api = axios.create({
  * @returns {string} GitHub OAuth URL
  */
 export const getGithubAuthUrl = () => {
-  return `${api.defaults.baseURL}/auth/github`;
+  return `${api.defaults.baseURL}/api/auth/github`;
 };
 
 /**
@@ -27,7 +27,7 @@ export const getGithubAuthUrl = () => {
  */
 export const getCurrentUser = async () => {
   try {
-    const response = await api.get('/auth/user');
+    const response = await api.get('/api/auth/user');
     return response.data;
   } catch (error) {
     console.error('Failed to get current user:', error);
@@ -41,7 +41,7 @@ export const getCurrentUser = async () => {
  */
 export const refreshToken = async () => {
   try {
-    const response = await api.post('/auth/refresh');
+    const response = await api.post('/api/auth/refresh');
     return response.data;
   } catch (error) {
     console.error('Failed to refresh token:', error);
@@ -55,7 +55,7 @@ export const refreshToken = async () => {
  */
 export const logout = async () => {
   try {
-    const response = await api.post('/auth/logout');
+    const response = await api.post('/api/auth/logout');
     return response.data;
   } catch (error) {
     console.error('Failed to logout:', error);

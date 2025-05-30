@@ -1,76 +1,88 @@
 /**
- * Application Configuration
- * Loads environment variables and provides configuration for the application
- */
-require('dotenv').config();
-
-// Determine if running in Azure Static Web Apps
-const isAzure = Boolean(process.env.AZURE_STATIC_WEB_APPS_API_TOKEN);
-
-module.exports = {
-  env: process.env.NODE_ENV || 'development',
-  port: process.env.PORT || 3001,
-  
-  // Client URL for CORS
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
-  
-  // Database configuration
-  database: {
-    url: process.env.DATABASE_URL || 'sqlite:./data/database.sqlite',
-    options: {
-      logging: process.env.NODE_ENV === 'development'
-    }
-  },
-  
-  // JWT configuration
-  jwt: {
-    secret: process.env.JWT_SECRET || 'gitty-gitty-git-er-secret-key',
-    expiresIn: process.env.JWT_EXPIRES_IN || '24h'
-  },
-  
-  // GitHub OAuth configuration
-  github: {
-    clientId: process.env.GITHUB_CLIENT_ID,
-    clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    callbackUrl: process.env.GITHUB_CALLBACK_URL || '/auth/github/callback',
-    scope: ['user:email', 'repo']
-  },
-  
-  // Azure-specific configuration
-  azure: {
-    isAzure: isAzure,
-    // If in Azure, use the built-in auth system
-    useAzureAuth: isAzure,
-    // Data storage paths can be different in Azure
-    dataPath: isAzure ? '/data' : './data'
-  },
-  
-  // Log level
-  logLevel: process.env.LOG_LEVEL || 'info'
-};
-
-/**
- * Server configuration
+ * Server Configuration
+ * Centralizes all configuration settings for the application.
+ * Uses environment variables with sensible defaults.
  */
 
+// Load environment variables
 require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
 
-module.exports = {
-  port: process.env.PORT || 3001,
-  clientOrigin: process.env.CLIENT_ORIGIN || 'http://localhost:5173',
-  jwtSecret: process.env.JWT_SECRET || 'gitty-secret-key-dev',
-  jwtExpiration: process.env.JWT_EXPIRATION || '1d',
-  jwtRefreshExpiration: process.env.JWT_REFRESH_EXPIRATION || '7d',
-  github: {
-    clientId: process.env.GITHUB_CLIENT_ID,
-    clientSecret: process.env.GITHUB_CLIENT_SECRET,
-    redirectUri: process.env.GITHUB_REDIRECT_URI || 'http://localhost:3001/api/auth/github/callback',
-    scope: 'repo user'
-  },
-  cookieOptions: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+// Helper function to get env variable or fallback to default
+const getEnv = (key, defaultValue) => {
+  return process.env[key] || defaultValue;
+};
+
+// Determine environment
+const nodeEnv = getEnv('NODE_ENV', 'development');
+const isDev = nodeEnv === 'development';
+
+// Server configuration
+const port = parseInt(getEnv('PORT', '3001'), 10);
+const clientOrigin = getEnv('CLIENT_ORIGIN', 'http://localhost:5173');
+
+// GitHub OAuth configuration
+const github = {
+  clientId: getEnv('GITHUB_CLIENT_ID', 'Ov23liTWuUxt5J7tIUI9'),
+  clientSecret: getEnv('GITHUB_CLIENT_SECRET', 'your-github-client-secret'),
+  redirectUri: getEnv('GITHUB_REDIRECT_URI', `http://localhost:${port}/api/auth/github/callback`),
+  scope: getEnv('GITHUB_SCOPE', 'user,repo')
+};
+
+// JWT configuration
+const jwtSecret = getEnv('JWT_SECRET', 'your-secret-key-change-in-production');
+const jwtExpiration = getEnv('JWT_EXPIRATION', '1h');
+const jwtRefreshExpiration = getEnv('JWT_REFRESH_EXPIRATION', '7d');
+
+// Cookie configuration
+const cookieOptions = {
+  httpOnly: true,
+  secure: !isDev,
+  sameSite: isDev ? 'lax' : 'none',
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  path: '/'
+};
+
+// Rate limiting
+const rateLimit = {
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+};
+
+// Database configuration
+const database = {
+  url: getEnv('DATABASE_URL', 'sqlite:./data/database.sqlite'),
+  options: {
+    logging: isDev
   }
+};
+
+// Logging configuration
+const logging = {
+  level: isDev ? 'debug' : 'info',
+  file: getEnv('LOG_FILE', './logs/server.log')
+};
+
+// CORS configuration
+const cors = {
+  origin: clientOrigin,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+// Export the configuration
+module.exports = {
+  port,
+  clientOrigin,
+  github,
+  jwtSecret,
+  jwtExpiration,
+  jwtRefreshExpiration,
+  cookieOptions,
+  rateLimit,
+  database,
+  logging,
+  cors,
+  isDev,
+  nodeEnv
 };

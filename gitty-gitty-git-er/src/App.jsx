@@ -226,10 +226,3 @@ export default function App() {
     </div>
   );
 }
-
-// Export public functions
-export { 
-  navigateToPage,
-  updateOnlineStatus,
-  setTheme
-};

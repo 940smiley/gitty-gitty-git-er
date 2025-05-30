@@ -128,7 +128,7 @@ export const AuthProvider = ({ children }) => {
     }
     
     // Using environment variable for the API URL
-    const authUrl = `${apiUrl}/auth/github`;
+    const authUrl = `${apiUrl}/api/auth/github`;
     console.log('Auth URL:', authUrl);
     
     // Try to open in current window
