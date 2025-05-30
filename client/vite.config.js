@@ -39,98 +39,16 @@ export default defineConfig(({ command, mode }) => {
           ],
           categories: ['productivity', 'developer tools', 'utilities']
         },
-        workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,ttf,eot}'],
-          // Don't fallback on document based (e.g. `/some-page`) requests
-          // This removes the default '/' handler
-          navigationPreload: true,
-          // Only precache runtime
-          inlineWorkboxRuntime: true,
-          // Skip waiting to update service worker
-          skipWaiting: true,
-          clientsClaim: true,
-          runtimeCaching: [
-            // GitHub API caching
-            {
-              urlPattern: new RegExp('^https://api.github.com/.*'),
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'github-api-cache',
-                expiration: {
-                  maxEntries: 200,
-                  maxAgeSeconds: 60 * 60 * 24 // 24 hours
-                },
-                cacheableResponse: {
-                  statuses: [0, 200]
-                },
-                networkTimeoutSeconds: 10 // Fallback to cache if network request takes more than 10 seconds
-              }
-            },
-            // Cache images with a Cache-First strategy
-            {
-              urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'images-cache',
-                expiration: {
-                  maxEntries: 100,
-                  maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
-                }
-              }
-            },
-            // Cache fonts with a Cache-First strategy
-            {
-              urlPattern: /\.(?:woff|woff2|ttf|eot)$/,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'fonts-cache',
-                expiration: {
-                  maxEntries: 50,
-                  maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-                }
-              }
-            },
-            // Cache JS and CSS with a Stale-While-Revalidate strategy
-            {
-              urlPattern: /\.(?:js|css)$/,
-              handler: 'StaleWhileRevalidate',
-              options: {
-                cacheName: 'static-resources',
-                expiration: {
-                  maxEntries: 100,
-                  maxAgeSeconds: 24 * 60 * 60 // 24 hours
-                }
-              }
-            },
-            // Cache the local API endpoints for offline support
-            {
-              urlPattern: /^\/api\//,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'api-cache',
-                expiration: {
-                  maxEntries: 50,
-                  maxAgeSeconds: 60 * 60 * 24 // 24 hours
-                },
-                networkTimeoutSeconds: 10
-              }
-            },
-            // Fallback for navigation requests
-            {
-              urlPattern: /\/$/,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'pages-cache',
-                expiration: {
-                  maxEntries: 30,
-                  maxAgeSeconds: 60 * 60 * 24 // 24 hours
-                }
-              }
-            }
-          ]
-        },
+        // We're using a custom service worker with our own caching strategies
+        // No need for Workbox configuration here since we handle it in service-worker.js
         // Enable offline detection and handling
-        strategies: 'injectManifest',
+        strategy: 'injectManifest',
+        swSrc: './service-worker.js',
+        injectRegister: 'auto',
+        injectManifest: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,ttf,eot}'],
+          globIgnores: ['**/node_modules/**/*']
+        },
         devOptions: {
           enabled: true,
           type: 'module'

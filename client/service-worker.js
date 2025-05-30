@@ -3,29 +3,16 @@
  * Handles caching and offline functionality for the PWA
  */
 
-const CACHE_NAME = 'gitty-git-er-v1';
+// Import Workbox modules using ES module imports
+import { precacheAndRoute } from 'workbox-precaching';
+import { registerRoute } from 'workbox-routing';
+import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
+import { ExpirationPlugin } from 'workbox-expiration';
 
-// Assets to cache immediately on installation
-const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/css/styles.css',
-  '/js/app.js',
-  '/js/auth.js',
-  '/js/api.js',
-  '/js/ui.js',
-  '/js/cache.js',
-  '/manifest.json',
-  '/images/logo.svg',
-  '/images/icons/icon-72x72.png',
-  '/images/icons/icon-96x96.png',
-  '/images/icons/icon-128x128.png',
-  '/images/icons/icon-144x144.png',
-  '/images/icons/icon-152x152.png',
-  '/images/icons/icon-192x192.png',
-  '/images/icons/icon-384x384.png',
-  '/images/icons/icon-512x512.png'
-];
+// Precache all static assets defined in the manifest
+precacheAndRoute(self.__WB_MANIFEST);
+
+const CACHE_NAME = 'gitty-git-er-v1';
 
 // API routes to cache on successful fetch
 const API_ROUTES = [
@@ -34,20 +21,10 @@ const API_ROUTES = [
   { urlPattern: /\/api\/prs\//, cacheName: 'pr-data', maxAgeSeconds: 300 }
 ];
 
-// Install event - cache static assets
+// Install event - Workbox will handle precaching
 self.addEventListener('install', event => {
   console.log('[Service Worker] Installing...');
   self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('[Service Worker] Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
-      })
-      .catch(error => {
-        console.error('[Service Worker] Error caching static assets:', error);
-      })
-  );
 });
 
 // Activate event - clean up old caches
