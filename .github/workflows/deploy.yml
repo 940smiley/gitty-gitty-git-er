@@ -15,46 +15,41 @@ permissions:
   contents: read
   pages: write
   id-token: write
-  deployments: write
 
 # Allow only one concurrent deployment
 concurrency:
   group: "pages"
   cancel-in-progress: true
 
+# Environment variables available to all jobs and steps
+env:
+  NODE_VERSION: 18
+
 jobs:
+  # Build job
   build:
     name: Build
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       
       - name: Setup Pages
-        uses: actions/configure-pages@v3
+        id: pages
+        uses: actions/configure-pages@v4
       
       - name: Install dependencies
         run: |
           npm ci
           cd client && npm ci && cd ..
         
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            **/node_modules
-            ~/.npm
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-modules-
-      
       - name: Build client
         env:
           # Set any environment variables needed for the build
@@ -64,15 +59,16 @@ jobs:
           NODE_ENV: production
           # GitHub Pages environment
           GITHUB_PAGES: true
+          # Base path from configure-pages step
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
         run: cd client && npm run build
       
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v2
         with:
           path: ./client/dist
-          name: github-pages
-          retention-days: 1
 
+  # Deployment job
   deploy:
     name: Deploy
     environment:
@@ -84,14 +80,6 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     
     steps:
-      - name: Verify GitHub Pages Status
-        run: |
-          echo "Verifying GitHub Pages status before deployment"
-          # This will help identify issues with GitHub Pages configuration
-          curl -s -I "https://api.github.com/repos/${{ github.repository }}/pages" \
-          -H "Authorization: token ${{ github.token }}" \
-          -H "Accept: application/vnd.github.v3+json"
-      
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v3
+        uses: actions/deploy-pages@v2
