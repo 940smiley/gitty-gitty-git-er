@@ -61,6 +61,12 @@ async function executeWithRetry(operation, operationName, options = {}) {
     } catch (error) {
       lastError = error;
       
+      // Add recoverable flag for network errors
+      if (error.status >= 500 || error.status === 429) {
+        error.recoverable = true;
+        error.retryAfter = error.headers?.['retry-after'] || Math.ceil(calculateBackoffTime(retries + 1) / 1000);
+      }
+      
       // Check if this error should trigger a retry
       if (retries >= maxRetries || !shouldRetry(error, retries)) {
         logger.error(`${operationName} failed: ${error.message}`);
@@ -343,6 +349,11 @@ async function createRepositoryFiles(accessToken, owner, repo, structure) {
         }
       ).catch(fileError => {
         logger.error(`Failed to create/update file ${file.path}: ${fileError.message}`);
+        // Add recoverable flag for network errors
+        if (fileError.status >= 500 || fileError.status === 429) {
+          fileError.recoverable = true;
+          fileError.retryAfter = fileError.headers?.['retry-after'] || 30;
+        }
         return { success: false, path: file.path, error: fileError.message };
       });
     }));
@@ -377,19 +388,27 @@ async function createRepositoryFiles(accessToken, owner, repo, structure) {
 async function createRepositoryWithAI(guidelines, options, providerConfig, accessToken, aiProvider) {
   // Validate required parameters
   if (!guidelines) {
-    throw new Error('Repository creation guidelines are required');
+    const error = new Error('Repository creation guidelines are required');
+    error.code = 'INVALID_GUIDELINES';
+    throw error;
   }
   
   if (!options.name) {
-    throw new Error('Repository name is required');
+    const error = new Error('Repository name is required');
+    error.code = 'INVALID_REPOSITORY_NAME';
+    throw error;
   }
   
   if (!accessToken) {
-    throw new Error('GitHub access token is required');
+    const error = new Error('GitHub access token is required');
+    error.code = 'INVALID_TOKEN';
+    throw error;
   }
   
   if (!aiProvider || !aiProvider.chat) {
-    throw new Error('Valid AI provider with chat capability is required');
+    const error = new Error('Valid AI provider with chat capability is required');
+    error.code = 'PROVIDER_ERROR';
+    throw error;
   }
   
   let repository = null;
@@ -443,8 +462,36 @@ async function createRepositoryWithAI(guidelines, options, providerConfig, acces
         repository.name,
         structure
       );
+      
+      // Check if any files failed
+      const failedFiles = files.filter(f => !f.success);
+      if (failedFiles.length > 0) {
+        logger.warn(`${failedFiles.length} files failed to be created in ${repository.full_name}`);
+        
+        // If all files failed, treat it as an error and trigger the fallback mechanism
+        if (failedFiles.length === files.length) {
+          const error = new Error(`All files failed to be created`);
+          error.failedFiles = failedFiles;
+          throw error;
+        }
+        
+        // Some files succeeded, some failed - return partial success
+        return {
+          ...repository,
+          ai_status: 'partial',
+          ai_error: `${failedFiles.length} files failed to be created`,
+          files: files.filter(f => f.success).map(f => f.path),
+          failed_files: failedFiles.map(f => f.path)
+        };
+      }
     } catch (fileError) {
       logger.error(`Failed to create repository files: ${fileError.message}`);
+      
+      // Mark network errors as recoverable
+      if (fileError.status >= 500 || fileError.status === 429) {
+        fileError.recoverable = true;
+        fileError.retryAfter = fileError.headers?.['retry-after'] || 30;
+      }
       
       // Try to create at least a README if file creation failed
       try {
@@ -454,19 +501,24 @@ async function createRepositoryWithAI(guidelines, options, providerConfig, acces
           content: `# ${repository.name}\n\n${structure.description || 'Repository created with AI assistance'}\n\n## Getting Started\n\nMore files will be added soon.`
         };
         
-        await executeWithRetry(
+        // Make sure the README creation is captured in a variable to verify success
+        const readmeResult = await executeWithRetry(
           async () => {
-            await octokit.repos.createOrUpdateFileContents({
+            const result = await octokit.repos.createOrUpdateFileContents({
               owner: repository.owner.login,
               repo: repository.name,
               path: defaultReadme.path,
               message: 'Add README.md',
               content: Buffer.from(defaultReadme.content).toString('base64')
             });
+            return result;
           },
           "Create fallback README",
           { maxRetries: 2 }
         );
+        
+        // Log successful README creation
+        logger.info(`Successfully created fallback README for ${repository.full_name}`);
         
         // Return partial success with error info
         return {
@@ -530,12 +582,18 @@ async function createRepositoryWithAI(guidelines, options, providerConfig, acces
     // Add specific error classification for better handling
     if (error.status === 422) {
       error.code = 'REPOSITORY_NAME_EXISTS';
-    } else if (error.message.includes('guidelines')) {
+    } else if (error.message.includes('guidelines') && !error.code) {
       error.code = 'INVALID_GUIDELINES';
-    } else if (error.message.includes('AI provider')) {
+    } else if ((error.message.includes('AI provider') || error.message.includes('chat capability')) && !error.code) {
       error.code = 'PROVIDER_ERROR';
-    } else if (transactionState) {
+    } else if (transactionState && !error.code) {
       error.code = `TRANSACTION_FAILED_${transactionState.toUpperCase()}`;
+    }
+    
+    // Mark certain errors as recoverable
+    if (error.status >= 500 || error.status === 429) {
+      error.recoverable = true;
+      error.retryAfter = error.headers?.['retry-after'] || 30;
     }
     
     throw error;

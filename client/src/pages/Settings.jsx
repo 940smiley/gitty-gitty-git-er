@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuthContext } from '../context/AuthContext';
+import AIProviderConfig from '../components/ai/AIProviderConfig';
 
 const Settings = () => {
   const { user } = useAuthContext();
@@ -212,6 +213,19 @@ const Settings = () => {
               </a>
             </div>
           </div>
+        </div>
+      </div>
+      
+      {/* AI Configuration */}
+      <div className="mt-8 bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">AI Configuration</h3>
+          <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+            Configure AI providers and settings
+          </p>
+        </div>
+        <div className="p-4">
+          <AIProviderConfig />
         </div>
       </div>
     </div>

@@ -1,4 +1,7 @@
 {
+  "meta": {
+    "description": "Configuration for Azure Static Web Apps deployment"
+  },
   "routes": [
     {
       "route": "/api/*",

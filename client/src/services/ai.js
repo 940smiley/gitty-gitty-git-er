@@ -4,9 +4,31 @@
  */
 import axios from 'axios';
 
+/**
+ * Safely get environment variables with fallbacks
+ * @param {string} key - Environment variable key
+ * @param {any} defaultValue - Default value if environment variable is not available
+ * @returns {any} - Environment variable value or default
+ */
+const getEnv = (key, defaultValue) => {
+  try {
+    if (typeof import.meta === 'undefined' || !import.meta.env) {
+      console.warn('Environment variables not available');
+      return defaultValue;
+    }
+    return import.meta.env[key] !== undefined ? import.meta.env[key] : defaultValue;
+  } catch (error) {
+    console.error(`Error accessing environment variable ${key}:`, error);
+    return defaultValue;
+  }
+};
+
+// Get API URL from environment variables with fallback
+const API_URL = getEnv('VITE_API_URL', '/api');
+
 // Create axios instance with credentials support
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: API_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -390,6 +412,62 @@ export const checkLocalLLMAvailability = async (providerId) => {
   }
 };
 
+/**
+ * Upload a GGUF model file
+ * @param {FormData} formData - Form data containing the model file
+ * @param {Function} onProgress - Progress callback function
+ * @returns {Promise<Object>} Uploaded model information
+ */
+export const uploadModel = async (formData, onProgress) => {
+  try {
+    const response = await api.post('/ai/models/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(percentCompleted);
+        }
+      },
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Failed to upload model:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get list of uploaded models
+ * @returns {Promise<Array<Object>>} List of uploaded models
+ */
+export const getUploadedModels = async () => {
+  try {
+    const response = await api.get('/ai/models');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get uploaded models:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete an uploaded model
+ * @param {string} modelId - ID of the model to delete
+ * @returns {Promise<Object>} Result of the delete operation
+ */
+export const deleteUploadedModel = async (modelId) => {
+  try {
+    const response = await api.delete(`/ai/models/${modelId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to delete model:', error);
+    throw error;
+  }
+};
+
 export default {
   AI_PROVIDERS,
   DEFAULT_PROVIDER_CONFIGS,
@@ -403,5 +481,8 @@ export default {
   chatWithAI,
   connectToLocalLLM,
   checkLocalLLMAvailability,
+  uploadModel,
+  getUploadedModels,
+  deleteUploadedModel,
 };
 

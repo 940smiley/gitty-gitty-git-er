@@ -1,4 +1,29 @@
 /**
+ * Server Entry Point
+ * Starts the Express server when running directly (not in Azure Functions)
+ */
+const app = require('./src/app');
+const config = require('./src/config');
+const logger = require('./src/utils/logger');
+
+// Check if running in Azure Static Web Apps
+const isAzure = Boolean(process.env.AZURE_STATIC_WEB_APPS_API_TOKEN);
+
+// Only start the server if not running in Azure Functions
+if (!isAzure) {
+  const PORT = config.port || 3001;
+  
+  app.listen(PORT, () => {
+    logger.info(`Server running on port ${PORT}`);
+    logger.info(`API available at http://localhost:${PORT}/api`);
+    logger.info(`Environment: ${config.env}`);
+  });
+}
+
+// Export the app for potential use elsewhere
+module.exports = app;
+
+/**
  * Gitty-Gitty-Git-Er Server
  * Express server that provides API endpoints and handles GitHub OAuth
  */

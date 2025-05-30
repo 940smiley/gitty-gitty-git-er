@@ -335,17 +335,35 @@ describe('Repository Creator', () => {
 
     test('should create fallback README when file creation fails', async () => {
       // Arrange
-      const fileError = new Error('File creation failed');
+      const fileError = new Error('All files failed to be created');
       fileError.status = 500;
       
       // Mock successful AI processing
       mockAiProvider.chat.mockResolvedValue(JSON.stringify(mockAiResponse));
       
-      // Mock file creation failure but README success
-      mockOctokit.repos.createOrUpdateFileContents
-        .mockRejectedValue(fileError) // Regular file creation fails
-        .mockResolvedValueOnce({ data: { content: {} } }); // README succeeds
-
+      // First ensure normal file creation fails
+      mockOctokit.repos.createOrUpdateFileContents.mockRejectedValue(fileError);
+      
+      // Save the original implementation to restore later
+      const originalImplementation = mockOctokit.repos.createOrUpdateFileContents;
+      
+      // Now set up a count to track calls
+      let callCount = 0;
+      
+      // Custom implementation that rejects all calls except when creating README.md
+      mockOctokit.repos.createOrUpdateFileContents = jest.fn().mockImplementation((params) => {
+        callCount++;
+        
+        // The specific call for the fallback README creation in the catch block
+        // should be the last one after all other file creation attempts have failed
+        if (params.path === 'README.md' && params.message === 'Add README.md') {
+          return Promise.resolve({ data: { content: {} } });
+        }
+        
+        // All other calls should fail
+        return Promise.reject(fileError);
+      });
+      
       // Act
       const result = await repositoryCreator.createRepositoryWithAI(
         sampleGuidelines,
