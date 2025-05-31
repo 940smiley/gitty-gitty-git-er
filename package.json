@@ -10,16 +10,12 @@
     "test": "jest",
     "chatbot": "cd chatbot && node chatbot.js",
     "build-exe": "cd chatbot && node build.js",
-    "web:dev": "cd web && npm run dev",
-    "web:build": "cd web && npm run build",
-    "pwa:build": "cd web && npm run build && cp -r ../pwa/service-worker.js ../pwa/manifest.json web/dist/",
-    "electron:start": "cd electron && npm start",
-    "electron:build": "npm run web:build && cd electron && npm run build",
-    "postinstall": "npm run install:all",
-    "install:all": "npm run install:chatbot && npm run install:web && npm run install:electron",
-    "install:chatbot": "cd chatbot && npm install",
-    "install:web": "cd web && npm install",
-    "install:electron": "cd electron && npm install"
+    "web:dev": "echo \"Web app not implemented yet\"",
+    "web:build": "echo \"Web app not implemented yet\"",
+    "pwa:build": "echo \"PWA not implemented yet\"",
+    "electron:start": "echo \"Electron app not implemented yet\"",
+    "electron:build": "echo \"Electron app not implemented yet\"",
+    "install:chatbot": "cd chatbot && npm install"
   },
   "keywords": [
     "github",
