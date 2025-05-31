@@ -43,24 +43,10 @@ const config = {
   
   // LLM settings
   llm: {
-    provider: process.env.LLM_PROVIDER || 'local',
+    provider: process.env.LLM_PROVIDER || 'ollama',
     apiKey: process.env.LLM_API_KEY,
-    apiUrl: process.env.LLM_API_URL,
-    modelPath: process.env.LLM_MODEL_PATH || path.join(__dirname, '..', 'models', 'model.gguf'),
+    apiUrl: process.env.LLM_API_URL || 'http://localhost:11434/api/generate',
     modelName: process.env.LLM_MODEL_NAME || 'codellama'
-  },
-  
-  // Validate configuration
-  validate: function() {
-    if (!this.github.token) {
-      console.warn('Warning: GITHUB_TOKEN not set. Some features may not work.');
-    }
-    
-    if (!this.github.username) {
-      console.warn('Warning: GITHUB_USERNAME not set. Some features may not work.');
-    }
-    
-    return true;
   }
 };
 

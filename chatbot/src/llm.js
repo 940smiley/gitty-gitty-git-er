@@ -19,23 +19,15 @@ const simpleLogger = {
   error: (msg) => console.error(`[ERROR] ${msg}`)
 };
 
-// Try to load node-llama-cpp directly
+// Try to load node-llama-cpp if available (for local GGUF models)
 let LlamaModel;
 try {
-  const nodeGypPath = path.join(process.cwd(), 'node_modules', 'node-llama-cpp');
-  console.log(`Looking for node-llama-cpp at: ${nodeGypPath}`);
-  
-  if (fs.existsSync(nodeGypPath)) {
-    console.log('node-llama-cpp directory found');
-    const llamaModule = await import('node-llama-cpp');
-    LlamaModel = llamaModule.LlamaModel;
-    console.log('Successfully loaded node-llama-cpp module');
-  } else {
-    console.warn('node-llama-cpp directory not found');
-  }
+  const llamaModule = await import('node-llama-cpp');
+  LlamaModel = llamaModule.LlamaModel;
+  console.log('Successfully loaded node-llama-cpp module');
 } catch (error) {
-  console.error(`Failed to load node-llama-cpp: ${error.message}`);
-  console.error('Stack trace:', error.stack);
+  console.warn(`node-llama-cpp not available: ${error.message}`);
+  console.warn('Local GGUF models will not work. Using Ollama instead.');
 }
 
 class LLMProvider {
@@ -62,7 +54,9 @@ class LLMProvider {
           
           if (!this.modelPath || !fs.existsSync(this.modelPath)) {
             console.error(`Model file not found at ${this.modelPath}`);
-            return false;
+            console.log('Falling back to Ollama provider');
+            this.provider = 'ollama';
+            return this.initialize();
           }
           
           console.log(`Initializing local LLM from ${this.modelPath}`);
@@ -186,33 +180,6 @@ class LLMProvider {
     } catch (error) {
       console.error(`LLM generation failed: ${error.message}`);
       return `Error generating response: ${error.message}`;
-    }
-  }
-
-  async uploadModel(file, modelName) {
-    try {
-      const targetPath = path.join(__dirname, '..', 'models', modelName);
-      
-      // Create models directory if it doesn't exist
-      const modelsDir = path.join(__dirname, '..', 'models');
-      if (!fs.existsSync(modelsDir)) {
-        fs.mkdirSync(modelsDir, { recursive: true });
-      }
-      
-      // Copy the file to models directory
-      fs.copyFileSync(file, targetPath);
-      
-      console.log(`Model uploaded to ${targetPath}`);
-      return {
-        success: true,
-        path: targetPath
-      };
-    } catch (error) {
-      console.error(`Failed to upload model: ${error.message}`);
-      return {
-        success: false,
-        error: error.message
-      };
     }
   }
 }

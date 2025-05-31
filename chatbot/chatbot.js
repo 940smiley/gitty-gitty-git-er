@@ -14,69 +14,60 @@ import LLMProvider from './src/llm.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Import the GitHub bot dynamically
-let createGitHubBot;
-try {
-  const indexModule = await import('../index.js');
-  createGitHubBot = indexModule.createGitHubBot;
-} catch (error) {
-  console.error(`Failed to import GitHub bot: ${error.message}`);
-  console.error('Using mock GitHub bot instead');
-  
-  // Create a mock GitHub bot for testing
-  createGitHubBot = async () => {
-    return {
-      repositories: {
-        listRepositories: async () => {
-          return [
-            { full_name: 'example/repo1', private: false },
-            { full_name: 'example/repo2', private: true }
-          ];
-        },
-        getRepository: async () => ({ name: 'repo', owner: { login: 'example' } })
+// Create a mock GitHub bot for testing
+const createMockGitHubBot = async () => {
+  return {
+    repositories: {
+      listRepositories: async () => {
+        return [
+          { full_name: 'example/repo1', private: false },
+          { full_name: 'example/repo2', private: true }
+        ];
       },
-      code: {
-        listDirectory: async () => {
-          return [
-            { name: 'file1.js', type: 'file' },
-            { name: 'folder1', type: 'dir' }
-          ];
-        },
-        getFileContents: async () => {
-          return { 
-            type: 'file', 
-            content: Buffer.from('console.log("Hello world");').toString('base64'),
-            sha: '123abc'
-          };
-        },
-        updateFile: async () => ({ commit: { sha: '456def' } }),
-        deleteFile: async () => ({ commit: { sha: '789ghi' } })
+      getRepository: async () => ({ name: 'repo', owner: { login: 'example' } }),
+      createBranch: async () => ({ ref: 'refs/heads/new-branch' })
+    },
+    code: {
+      listDirectory: async () => {
+        return [
+          { name: 'file1.js', type: 'file' },
+          { name: 'folder1', type: 'dir' }
+        ];
       },
-      commits: {
-        listBranches: async () => {
-          return [
-            { name: 'main', commit: { sha: '123abc' } },
-            { name: 'dev', commit: { sha: '456def' } }
-          ];
-        },
-        listPullRequests: async () => {
-          return [
-            { 
-              number: 1, 
-              title: 'Example PR', 
-              state: 'open',
-              head: { ref: 'feature' },
-              base: { ref: 'main' },
-              user: { login: 'user' },
-              created_at: new Date().toISOString()
-            }
-          ];
-        },
-        createPullRequest: async () => ({ number: 2 })
-      }
-    };
+      getFileContents: async () => {
+        return { 
+          type: 'file', 
+          content: Buffer.from('console.log("Hello world");').toString('base64'),
+          sha: '123abc'
+        };
+      },
+      updateFile: async () => ({ commit: { sha: '456def' } }),
+      deleteFile: async () => ({ commit: { sha: '789ghi' } })
+    },
+    commits: {
+      listBranches: async () => {
+        return [
+          { name: 'main', commit: { sha: '123abc' } },
+          { name: 'dev', commit: { sha: '456def' } }
+        ];
+      },
+      listPullRequests: async () => {
+        return [
+          { 
+            number: 1, 
+            title: 'Example PR', 
+            state: 'open',
+            head: { ref: 'feature' },
+            base: { ref: 'main' },
+            user: { login: 'user' },
+            created_at: new Date().toISOString()
+          }
+        ];
+      },
+      createPullRequest: async () => ({ number: 2 })
+    }
   };
-}
+};
 
 class GitChatBot {
   constructor() {
@@ -93,7 +84,10 @@ class GitChatBot {
   async initialize() {
     try {
       console.log('Initializing Git Chat Bot...');
-      this.bot = await createGitHubBot();
+      
+      // Use mock GitHub bot
+      console.log('Using mock GitHub bot for testing');
+      this.bot = await createMockGitHubBot();
       
       // Initialize LLM if configured
       if (config.llm.provider !== 'none') {
@@ -190,12 +184,12 @@ class GitChatBot {
           }
           break;
         case 'llm':
-          if (args[0] === 'upload') {
-            await this.uploadModel(args.slice(1).join(' '));
-          } else if (args[0] === 'config') {
+          if (args[0] === 'config') {
             this.configLLM(args.slice(1));
+          } else if (args[0] === 'test') {
+            await this.testLLM();
           } else {
-            console.log('Unknown LLM command. Use /llm upload or /llm config');
+            console.log('Unknown LLM command. Use /llm config or /llm test');
           }
           break;
         case 'exit':
@@ -235,6 +229,19 @@ class GitChatBot {
     console.log(response);
   }
 
+  async testLLM() {
+    if (!this.llm || config.llm.provider === 'none') {
+      console.log('LLM support is not enabled. Configure an LLM provider first with /llm config provider <provider>');
+      return;
+    }
+    
+    console.log(`Testing LLM provider: ${config.llm.provider}`);
+    const response = await this.llm.generateResponse('Say hello and briefly explain what you can help with regarding Git repositories.');
+    
+    console.log('\nLLM Test Response:');
+    console.log(response);
+  }
+
   showHelp() {
     console.log('\nAvailable commands:');
     console.log('  /help                 - Show this help message');
@@ -250,8 +257,8 @@ class GitChatBot {
     console.log('  /branch switch <name> - Switch to a different branch');
     console.log('  /pr list              - List pull requests');
     console.log('  /pr create            - Create a pull request');
-    console.log('  /llm upload <path>    - Upload a GGUF model file');
     console.log('  /llm config <options> - Configure LLM settings');
+    console.log('  /llm test             - Test the LLM connection');
     console.log('  /exit                 - Exit the application');
     console.log('\nYou can also type natural language requests if an LLM provider is configured.');
   }
@@ -614,41 +621,11 @@ class GitChatBot {
     });
   }
 
-  async uploadModel(filePath) {
-    if (!filePath) {
-      console.log('Please specify a path to the GGUF model file');
-      return;
-    }
-
-    try {
-      // Check if the file exists
-      if (!fs.existsSync(filePath)) {
-        console.log(`File not found: ${filePath}`);
-        console.log('Please provide an absolute path to the model file');
-        return;
-      }
-
-      console.log(`Found model file at: ${filePath}`);
-      const fileName = path.basename(filePath);
-      const result = await this.llm.uploadModel(filePath, fileName);
-      
-      if (result.success) {
-        console.log(`Model uploaded successfully to ${result.path}`);
-        console.log('To use this model, configure it with:');
-        console.log(`/llm config modelPath ${result.path}`);
-      } else {
-        console.error(`Failed to upload model: ${result.error}`);
-      }
-    } catch (error) {
-      console.error(`Failed to upload model: ${error.message}`);
-      console.error('Stack trace:', error.stack);
-    }
-  }
-
   configLLM(args) {
     if (args.length < 2) {
       console.log('Usage: /llm config <setting> <value>');
       console.log('Available settings: provider, apiKey, apiUrl, modelPath, modelName');
+      console.log('Available providers: ollama, openai, api');
       return;
     }
 
