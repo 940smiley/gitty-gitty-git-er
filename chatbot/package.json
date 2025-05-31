@@ -1,0 +1,22 @@
+{
+  "name": "gitty-gitty-git-er-chatbot",
+  "version": "1.0.0",
+  "description": "Chat interface for Git repository management with LLM integration",
+  "main": "chatbot.js",
+  "scripts": {
+    "start": "node chatbot.js",
+    "build": "node ../build.js"
+  },
+  "dependencies": {
+    "@octokit/rest": "^19.0.7",
+    "axios": "^1.4.0",
+    "dotenv": "^16.0.3",
+    "winston": "^3.8.2"
+  },
+  "optionalDependencies": {
+    "node-llama-cpp": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

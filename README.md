@@ -1,6 +1,6 @@
 # Gitty-Gitty-Git-Er
 
-A comprehensive GitHub bot for repository and code management with a chat interface.
+A comprehensive GitHub bot for repository and code management with multiple deployment options.
 
 ## Features
 
@@ -9,7 +9,16 @@ A comprehensive GitHub bot for repository and code management with a chat interf
 - File operations (read, create, edit, delete)
 - Branch management (list, create, switch)
 - Pull request handling (list, create, merge)
-- Standalone executable for easy distribution
+- LLM integration for natural language processing
+- Multiple deployment options (CLI, Web, PWA, Desktop)
+
+## Project Structure
+
+- `/chatbot` - Command-line chat interface with LLM integration
+- `/web` - Web application for browser-based access
+- `/pwa` - Progressive Web App configuration
+- `/electron` - Desktop application using Electron
+- `/src` - Shared core functionality
 
 ## Installation
 
@@ -24,11 +33,13 @@ A comprehensive GitHub bot for repository and code management with a chat interf
    npm install
    ```
 
-3. Create a `.env` file based on `.env.example` and add your GitHub token:
+3. Create environment files:
    ```
-   cp .env.example .env
-   # Edit .env and add your GitHub token
+   cp chatbot/.env.example chatbot/.env
+   cp web/.env.example web/.env
    ```
+
+4. Configure your GitHub token in the appropriate .env file
 
 ## Usage
 
@@ -40,42 +51,85 @@ Run the chat bot interface:
 npm run chatbot
 ```
 
-This will start an interactive terminal session where you can manage your Git repositories.
-
 Available commands:
-- `help` - Show help message
-- `list` - List your repositories
-- `use <repo>` - Select a repository to work with
-- `files [path]` - List files in the current repository
-- `read <file>` - Read a file from the repository
-- `create <file>` - Create a new file
-- `edit <file>` - Edit an existing file
-- `delete <file>` - Delete a file
-- `branch list` - List branches
-- `branch create <name>` - Create a new branch
-- `branch switch <name>` - Switch to a different branch
-- `pr list` - List pull requests
-- `pr create` - Create a pull request
-- `exit` - Exit the application
+- `/help` - Show help message
+- `/list` - List your repositories
+- `/use <repo>` - Select a repository to work with
+- `/files [path]` - List files in the current repository
+- `/read <file>` - Read a file from the repository
+- `/create <file>` - Create a new file
+- `/edit <file>` - Edit an existing file
+- `/delete <file>` - Delete a file
+- `/branch list` - List branches
+- `/branch create <name>` - Create a new branch
+- `/branch switch <name>` - Switch to a different branch
+- `/pr list` - List pull requests
+- `/pr create` - Create a pull request
+- `/llm upload <path>` - Upload a GGUF model file
+- `/llm config <options>` - Configure LLM settings
+- `/exit` - Exit the application
 
-### Building Executable
+You can also type natural language requests if an LLM provider is configured.
 
-To build a standalone executable:
+### Web Application
+
+Start the web application in development mode:
 
 ```
-npm run build-exe
+npm run web:dev
 ```
 
-This will create executables for Windows, macOS, and Linux in the `dist` directory.
+Build the web application for production:
 
-## Configuration
+```
+npm run web:build
+```
 
-Configure the application by setting environment variables in the `.env` file:
+### Progressive Web App
 
-- `GITHUB_TOKEN` - Your GitHub personal access token
-- `GITHUB_USERNAME` - Your GitHub username
-- `PORT` - Server port (default: 3000)
-- `LOG_LEVEL` - Logging level (default: info)
+Build the PWA:
+
+```
+npm run pwa:build
+```
+
+### Desktop Application
+
+Start the Electron desktop application:
+
+```
+npm run electron:start
+```
+
+Build the desktop application:
+
+```
+npm run electron:build
+```
+
+## LLM Integration
+
+The chat bot supports multiple LLM providers:
+
+1. **Local GGUF Models**: Use your own GGUF models locally
+   - Upload a model with `/llm upload <path>`
+   - Configure with `/llm config provider local`
+   - Set model path with `/llm config modelPath <path>`
+
+2. **Ollama**: Connect to Ollama for local LLM inference
+   - Install Ollama from https://ollama.com/
+   - Pull a model: `ollama pull codellama`
+   - Configure with `/llm config provider ollama`
+   - Set API URL with `/llm config apiUrl http://localhost:11434/api/generate`
+   - Set model name with `/llm config modelName codellama`
+
+3. **OpenAI**: Use OpenAI's API
+   - Configure with `/llm config provider openai`
+   - Set API key with `/llm config apiKey <your-api-key>`
+
+4. **Custom API**: Connect to any compatible LLM API
+   - Configure with `/llm config provider api`
+   - Set API URL with `/llm config apiUrl <your-api-url>`
 
 ## License
 

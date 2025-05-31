@@ -7,10 +7,18 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "jest",
-    "build-client": "mkdir -p dist && cp -r client/* dist/",
-    "start-prod": "NODE_ENV=production node index.js",
-    "chatbot": "node chatbot.js",
-    "build-exe": "node build.js"
+    "chatbot": "cd chatbot && node chatbot.js",
+    "build-exe": "cd chatbot && node ../build.js",
+    "web:dev": "cd web && npm run dev",
+    "web:build": "cd web && npm run build",
+    "pwa:build": "cd web && npm run build && cp -r ../pwa/service-worker.js ../pwa/manifest.json web/dist/",
+    "electron:start": "cd electron && npm start",
+    "electron:build": "npm run web:build && cd electron && npm run build",
+    "postinstall": "npm run install:all",
+    "install:all": "npm run install:chatbot && npm run install:web && npm run install:electron",
+    "install:chatbot": "cd chatbot && npm install",
+    "install:web": "cd web && npm install",
+    "install:electron": "cd electron && npm install"
   },
   "keywords": [
     "github",
@@ -37,10 +45,11 @@
   "devDependencies": {
     "jest": "^29.5.0",
     "nodemon": "^2.0.22",
-    "pkg": "^5.8.1"
+    "pkg": "^5.8.1",
+    "concurrently": "^8.2.2"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=16.0.0"
   },
   "repository": {
     "type": "git",
