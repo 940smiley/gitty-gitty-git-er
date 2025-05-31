@@ -3,13 +3,80 @@
  * A simple chat interface to interact with Git repositories
  */
 
-const readline = require('readline');
-const path = require('path');
-const fs = require('fs');
-const { createGitHubBot } = require('../index');
-const config = require('./src/config');
-const LLMProvider = require('./src/llm');
-const logger = require('../src/utils/logger');
+import readline from 'readline';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import config from './src/config.js';
+import LLMProvider from './src/llm.js';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Import the GitHub bot dynamically
+let createGitHubBot;
+try {
+  const indexModule = await import('../index.js');
+  createGitHubBot = indexModule.createGitHubBot;
+} catch (error) {
+  console.error(`Failed to import GitHub bot: ${error.message}`);
+  console.error('Using mock GitHub bot instead');
+  
+  // Create a mock GitHub bot for testing
+  createGitHubBot = async () => {
+    return {
+      repositories: {
+        listRepositories: async () => {
+          return [
+            { full_name: 'example/repo1', private: false },
+            { full_name: 'example/repo2', private: true }
+          ];
+        },
+        getRepository: async () => ({ name: 'repo', owner: { login: 'example' } })
+      },
+      code: {
+        listDirectory: async () => {
+          return [
+            { name: 'file1.js', type: 'file' },
+            { name: 'folder1', type: 'dir' }
+          ];
+        },
+        getFileContents: async () => {
+          return { 
+            type: 'file', 
+            content: Buffer.from('console.log("Hello world");').toString('base64'),
+            sha: '123abc'
+          };
+        },
+        updateFile: async () => ({ commit: { sha: '456def' } }),
+        deleteFile: async () => ({ commit: { sha: '789ghi' } })
+      },
+      commits: {
+        listBranches: async () => {
+          return [
+            { name: 'main', commit: { sha: '123abc' } },
+            { name: 'dev', commit: { sha: '456def' } }
+          ];
+        },
+        listPullRequests: async () => {
+          return [
+            { 
+              number: 1, 
+              title: 'Example PR', 
+              state: 'open',
+              head: { ref: 'feature' },
+              base: { ref: 'main' },
+              user: { login: 'user' },
+              created_at: new Date().toISOString()
+            }
+          ];
+        },
+        createPullRequest: async () => ({ number: 2 })
+      }
+    };
+  };
+}
 
 class GitChatBot {
   constructor() {
@@ -54,7 +121,7 @@ class GitChatBot {
     }
 
     console.log('\n===== Git Repository Chat Bot =====');
-    console.log('Type "help" to see available commands');
+    console.log('Type "/help" to see available commands');
     this.promptUser();
   }
 
@@ -124,7 +191,7 @@ class GitChatBot {
           break;
         case 'llm':
           if (args[0] === 'upload') {
-            await this.uploadModel(args[1]);
+            await this.uploadModel(args.slice(1).join(' '));
           } else if (args[0] === 'config') {
             this.configLLM(args.slice(1));
           } else {
@@ -554,11 +621,14 @@ class GitChatBot {
     }
 
     try {
+      // Check if the file exists
       if (!fs.existsSync(filePath)) {
         console.log(`File not found: ${filePath}`);
+        console.log('Please provide an absolute path to the model file');
         return;
       }
 
+      console.log(`Found model file at: ${filePath}`);
       const fileName = path.basename(filePath);
       const result = await this.llm.uploadModel(filePath, fileName);
       
@@ -571,6 +641,7 @@ class GitChatBot {
       }
     } catch (error) {
       console.error(`Failed to upload model: ${error.message}`);
+      console.error('Stack trace:', error.stack);
     }
   }
 
@@ -581,7 +652,8 @@ class GitChatBot {
       return;
     }
 
-    const [setting, value] = args;
+    const [setting, ...valueParts] = args;
+    const value = valueParts.join(' ');
     
     if (!['provider', 'apiKey', 'apiUrl', 'modelPath', 'modelName'].includes(setting)) {
       console.log(`Unknown setting: ${setting}`);
@@ -607,9 +679,9 @@ class GitChatBot {
 }
 
 // Start the chat bot when this script is run directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const chatBot = new GitChatBot();
   chatBot.start();
 }
 
-module.exports = GitChatBot;
+export default GitChatBot;

@@ -3,10 +3,15 @@
  * Provides consistent logging across the application
  */
 
-const winston = require('winston');
-const path = require('path');
-const fs = require('fs');
-const config = require('../../config');
+import winston from 'winston';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import config from '../../config.js';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Create logs directory if it doesn't exist
 const logDir = path.join(__dirname, '../../logs');
@@ -24,7 +29,7 @@ const logFormat = winston.format.combine(
 
 // Create the logger instance
 const logger = winston.createLogger({
-  level: config.logging.level || 'info',
+  level: config.logging?.level || 'info',
   format: logFormat,
   defaultMeta: { service: 'gitty-gitty-git-er' },
   transports: [
@@ -50,4 +55,4 @@ if (process.env.NODE_ENV !== 'production') {
   }));
 }
 
-module.exports = logger;
+export default logger;

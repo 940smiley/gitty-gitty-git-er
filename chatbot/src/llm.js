@@ -3,27 +3,50 @@
  * Supports multiple LLM providers: local GGUF models, OpenAI, Ollama, and custom API
  */
 
-const fs = require('fs');
-const path = require('path');
-const axios = require('axios');
-const logger = require('../../src/utils/logger');
+import fs from 'fs';
+import path from 'path';
+import axios from 'axios';
+import { fileURLToPath } from 'url';
 
-// Try to load node-llama-cpp if available (for local GGUF models)
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Simple logger for when the main logger isn't available
+const simpleLogger = {
+  info: (msg) => console.log(`[INFO] ${msg}`),
+  warn: (msg) => console.warn(`[WARN] ${msg}`),
+  error: (msg) => console.error(`[ERROR] ${msg}`)
+};
+
+// Try to load node-llama-cpp directly
 let LlamaModel;
 try {
-  LlamaModel = require('node-llama-cpp').LlamaModel;
+  const nodeGypPath = path.join(process.cwd(), 'node_modules', 'node-llama-cpp');
+  console.log(`Looking for node-llama-cpp at: ${nodeGypPath}`);
+  
+  if (fs.existsSync(nodeGypPath)) {
+    console.log('node-llama-cpp directory found');
+    const llamaModule = await import('node-llama-cpp');
+    LlamaModel = llamaModule.LlamaModel;
+    console.log('Successfully loaded node-llama-cpp module');
+  } else {
+    console.warn('node-llama-cpp directory not found');
+  }
 } catch (error) {
-  logger.warn('node-llama-cpp not available. Local GGUF models will not work.');
+  console.error(`Failed to load node-llama-cpp: ${error.message}`);
+  console.error('Stack trace:', error.stack);
 }
 
 class LLMProvider {
   constructor(config) {
-    this.provider = config.provider || process.env.LLM_PROVIDER || 'local';
+    this.provider = config.provider || process.env.LLM_PROVIDER || 'ollama';
     this.apiKey = config.apiKey || process.env.LLM_API_KEY;
-    this.apiUrl = config.apiUrl || process.env.LLM_API_URL;
+    this.apiUrl = config.apiUrl || process.env.LLM_API_URL || 'http://localhost:11434/api/generate';
     this.modelPath = config.modelPath || process.env.LLM_MODEL_PATH;
     this.modelName = config.modelName || process.env.LLM_MODEL_NAME || 'codellama';
     this.model = null;
+    this.logger = simpleLogger;
   }
 
   async initialize() {
@@ -31,12 +54,18 @@ class LLMProvider {
       switch (this.provider) {
         case 'local':
           if (!LlamaModel) {
-            throw new Error('node-llama-cpp not available for local models');
+            console.error('node-llama-cpp not available for local models');
+            console.log('Falling back to Ollama provider');
+            this.provider = 'ollama';
+            return this.initialize();
           }
+          
           if (!this.modelPath || !fs.existsSync(this.modelPath)) {
-            throw new Error(`Model file not found at ${this.modelPath}`);
+            console.error(`Model file not found at ${this.modelPath}`);
+            return false;
           }
-          logger.info(`Initializing local LLM from ${this.modelPath}`);
+          
+          console.log(`Initializing local LLM from ${this.modelPath}`);
           this.model = new LlamaModel({
             modelPath: this.modelPath,
             contextSize: 4096,
@@ -48,34 +77,46 @@ class LLMProvider {
         case 'ollama':
           // Test connection to Ollama
           try {
-            await axios.get(this.apiUrl.replace('/api/generate', '/api/tags'));
-            logger.info(`Connected to Ollama at ${this.apiUrl}`);
+            console.log(`Connecting to Ollama at ${this.apiUrl}`);
+            const response = await axios.get(this.apiUrl.replace('/api/generate', '/api/tags'));
+            console.log('Connected to Ollama successfully');
+            
+            // Check if the model exists
+            const models = response.data.models || [];
+            if (models.length > 0) {
+              console.log(`Available models: ${models.map(m => m.name).join(', ')}`);
+            }
           } catch (error) {
-            throw new Error(`Failed to connect to Ollama: ${error.message}`);
+            console.error(`Failed to connect to Ollama: ${error.message}`);
+            return false;
           }
           break;
           
         case 'openai':
           if (!this.apiKey) {
-            throw new Error('OpenAI API key not provided');
+            console.error('OpenAI API key not provided');
+            return false;
           }
-          logger.info('OpenAI API configured');
+          console.log('OpenAI API configured');
           break;
           
         case 'api':
           if (!this.apiUrl) {
-            throw new Error('Custom API URL not provided');
+            console.error('Custom API URL not provided');
+            return false;
           }
-          logger.info(`Custom LLM API configured at ${this.apiUrl}`);
+          console.log(`Custom LLM API configured at ${this.apiUrl}`);
           break;
           
         default:
-          throw new Error(`Unsupported LLM provider: ${this.provider}`);
+          console.error(`Unsupported LLM provider: ${this.provider}`);
+          return false;
       }
       
       return true;
     } catch (error) {
-      logger.error(`Failed to initialize LLM provider: ${error.message}`);
+      console.error(`Failed to initialize LLM provider: ${error.message}`);
+      console.error('Stack trace:', error.stack);
       return false;
     }
   }
@@ -98,6 +139,7 @@ class LLMProvider {
           return result.text;
           
         case 'ollama':
+          console.log(`Generating response with Ollama model: ${this.modelName}`);
           const ollamaResponse = await axios.post(this.apiUrl, {
             model: this.modelName,
             prompt,
@@ -142,7 +184,7 @@ class LLMProvider {
           throw new Error(`Unsupported LLM provider: ${this.provider}`);
       }
     } catch (error) {
-      logger.error(`LLM generation failed: ${error.message}`);
+      console.error(`LLM generation failed: ${error.message}`);
       return `Error generating response: ${error.message}`;
     }
   }
@@ -160,13 +202,13 @@ class LLMProvider {
       // Copy the file to models directory
       fs.copyFileSync(file, targetPath);
       
-      logger.info(`Model uploaded to ${targetPath}`);
+      console.log(`Model uploaded to ${targetPath}`);
       return {
         success: true,
         path: targetPath
       };
     } catch (error) {
-      logger.error(`Failed to upload model: ${error.message}`);
+      console.error(`Failed to upload model: ${error.message}`);
       return {
         success: false,
         error: error.message
@@ -175,4 +217,4 @@ class LLMProvider {
   }
 }
 
-module.exports = LLMProvider;
+export default LLMProvider;

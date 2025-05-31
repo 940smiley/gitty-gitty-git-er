@@ -2,9 +2,14 @@
  * Configuration module for the Gitty-Gitty-Git-Er chatbot
  */
 
-const path = require('path');
-const dotenv = require('dotenv');
-const fs = require('fs');
+import path from 'path';
+import dotenv from 'dotenv';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load environment variables from .env file
 const envPath = path.join(__dirname, '..', '.env');
@@ -14,7 +19,7 @@ if (fs.existsSync(envPath)) {
   dotenv.config();
 }
 
-module.exports = {
+const config = {
   // GitHub API settings
   github: {
     token: process.env.GITHUB_TOKEN,
@@ -58,3 +63,5 @@ module.exports = {
     return true;
   }
 };
+
+export default config;

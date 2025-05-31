@@ -3,10 +3,13 @@
  * Loads environment variables and provides configuration values
  */
 
-require('dotenv').config();
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
 
 // Export all configuration settings
-module.exports = {
+const config = {
   // GitHub API settings
   github: {
     token: process.env.GITHUB_TOKEN,
@@ -88,3 +91,5 @@ module.exports = {
     return `${protocol}://${host}`;
   }
 };
+
+export default config;
