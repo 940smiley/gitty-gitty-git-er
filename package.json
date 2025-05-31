@@ -8,7 +8,9 @@
     "dev": "nodemon index.js",
     "test": "jest",
     "build-client": "mkdir -p dist && cp -r client/* dist/",
-    "start-prod": "NODE_ENV=production node index.js"
+    "start-prod": "NODE_ENV=production node index.js",
+    "chatbot": "node chatbot.js",
+    "build-exe": "node build.js"
   },
   "keywords": [
     "github",
@@ -24,7 +26,6 @@
     "@octokit/rest": "^19.0.7",
     "axios": "^1.4.0",
     "cors": "^2.8.5",
-    "crypto": "^1.0.1",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-session": "^1.17.3",
@@ -35,7 +36,8 @@
   },
   "devDependencies": {
     "jest": "^29.5.0",
-    "nodemon": "^2.0.22"
+    "nodemon": "^2.0.22",
+    "pkg": "^5.8.1"
   },
   "engines": {
     "node": ">=14.0.0"
